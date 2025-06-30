@@ -1,805 +1,842 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, ChevronRight, Crown, Mic, Shirt, Clapperboard, Home, BarChart2, Star, Tv, Globe } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Drag Race Compendium</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #0f172a; /* Corresponds to slate-900 */
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-// --- DATABASE SIMULATION ---
-// This database has been massively expanded and corrected based on the strategic blueprint.
-const db = {
-  franchises: [
-    { id: 'rpdr-us', name: 'RuPaul\'s Drag Race', region: 'United States', premiereDate: '2009-02-02', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/4c1d95/f0abfc?text=RPDR+US', seasons: [5, 6, 7, 9, 16] },
-    { id: 'rpdr-as', name: 'RuPaul\'s Drag Race All Stars', region: 'United States', premiereDate: '2012-10-22', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/7b341e/fde68a?text=All+Stars', seasons: [2, 3, 7] },
-    { id: 'switch-dr', name: 'The Switch Drag Race', region: 'Chile', premiereDate: '2015-10-08', hosts: 'Karla Constant', logo: 'https://placehold.co/500x281/155e75/a5f3fc?text=The+Switch', seasons: [] },
-    { id: 'dr-thailand', name: 'Drag Race Thailand', region: 'Thailand', premiereDate: '2018-02-15', hosts: 'Art Arya, Pangina Heals', logo: 'https://placehold.co/500x281/701a75/f5d0fe?text=Thailand', seasons: [] },
-    { id: 'rpdr-uk', name: 'RuPaul\'s Drag Race UK', region: 'United Kingdom', premiereDate: '2019-10-03', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/1e3a8a/f0abfc?text=RPDR+UK', seasons: [101, 102] },
-    { id: 'canada-dr', name: 'Canada\'s Drag Race', region: 'Canada', premiereDate: '2020-07-02', hosts: 'Brooke Lynn Hytes', logo: 'https://placehold.co/500x281/6d28d9/f0abfc?text=Canada', seasons: [201] },
-    { id: 'dr-holland', name: 'Drag Race Holland', region: 'Netherlands', premiereDate: '2020-09-18', hosts: 'Fred van Leer', logo: 'https://placehold.co/500x281/c2410c/ffedd5?text=Holland', seasons: [] },
-    { id: 'drag-race-du', name: 'Drag Race Down Under', region: 'Australia & NZ', premiereDate: '2021-05-01', hosts: 'RuPaul, Michelle Visage', logo: 'https://placehold.co/500x281/0c4a6e/67e8f9?text=Down+Under', seasons: [301] },
-    { id: 'dr-espana', name: 'Drag Race España', region: 'Spain', premiereDate: '2021-05-30', hosts: 'Supremme de Luxe', logo: 'https://placehold.co/500x281/b91c1c/fecaca?text=España', seasons: [] },
-    { id: 'dr-italia', name: 'Drag Race Italia', region: 'Italy', premiereDate: '2021-11-18', hosts: 'Priscilla', logo: 'https://placehold.co/500x281/166534/bbf7d0?text=Italia', seasons: [] },
-    { id: 'dr-france', name: 'Drag Race France', region: 'France', premiereDate: '2022-06-25', hosts: 'Nicky Doll', logo: 'https://placehold.co/500x281/1e3a8a/bfdbfe?text=France', seasons: [] },
-    { id: 'dr-philippines', name: 'Drag Race Philippines', region: 'Philippines', premiereDate: '2022-08-17', hosts: 'Paolo Ballesteros', logo: 'https://placehold.co/500x281/f59e0b/fef3c7?text=Philippines', seasons: [] },
-    { id: 'uk-vs-world', name: 'UK vs. The World', region: 'United Kingdom', premiereDate: '2022-02-01', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/0c0a09/e7e5e4?text=UK+vs+TW', seasons: [] },
-    { id: 'canada-vs-world', name: 'Canada vs. The World', region: 'Canada', premiereDate: '2022-11-18', hosts: 'Brooke Lynn Hytes', logo: 'https://placehold.co/500x281/4a044e/fce7f3?text=CAN+vs+TW', seasons: [] },
-    { id: 'dr-belgique', name: 'Drag Race Belgique', region: 'Belgium', premiereDate: '2023-02-16', hosts: 'Rita Baga', logo: 'https://placehold.co/500x281/ca8a04/fefce8?text=Belgique', seasons: [] },
-    { id: 'dr-sverige', name: 'Drag Race Sverige', region: 'Sweden', premiereDate: '2023-03-04', hosts: 'Robert Fux', logo: 'https://placehold.co/500x281/047857/a7f3d0?text=Sverige', seasons: [] },
-    { id: 'dr-mexico', name: 'Drag Race México', region: 'Mexico', premiereDate: '2023-06-22', hosts: 'Lolita Banana, Valentina, Taiga Brava', logo: 'https://placehold.co/500x281/be123c/fecdd3?text=México', seasons: [] },
-    { id: 'dr-brasil', name: 'Drag Race Brasil', region: 'Brazil', premiereDate: '2023-08-30', hosts: 'Grag Queen', logo: 'https://placehold.co/500x281/15803d/dcfce7?text=Brasil', seasons: [] },
-    { id: 'dr-germany', name: 'Drag Race Germany', region: 'Germany', premiereDate: '2023-09-05', hosts: 'Barbie Breakout, Gianni Jovanovic', logo: 'https://placehold.co/500x281/172554/dbeafe?text=Germany', seasons: [] },
-    { id: 'global-as', name: 'Global All Stars', region: 'Global', premiereDate: '2024-08-16', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/fbbf24/171717?text=Global+AS', seasons: [] },
-  ],
-  seasons: {
-    // US Seasons
-    '16': { id: '16', franchiseId: 'rpdr-us', seasonNumber: '16', year: 2024, poster: 'https://placehold.co/400x600/0284c7/ffffff?text=Season+16', winner: 'Nymphia Wind', runnersUp: ['Plane Jane', 'Sapphira Cristál'], missCongeniality: 'Sapphira Cristál & Xunami Muse', contestants: [], trackRecord: [] },
-    '9': {
-      id: '9', franchiseId: 'rpdr-us', seasonNumber: '9', year: 2017,
-      poster: 'https://placehold.co/400x600/a21caf/ffffff?text=Season+9',
-      winner: 'Sasha Velour', runnersUp: ['Peppermint', 'Shea Couleé', 'Trinity the Tuck'], missCongeniality: 'Valentina',
-      contestants: ['sasha-velour', 'peppermint', 'shea-coulee', 'trinity-the-tuck', 'alexis-michelle', 'nina-bonina-brown', 'valentina', 'farrah-moan', 'aja', 'cynthia-lee-fontaine', 'eureka', 'charlie-hides', 'kimora-blac', 'jaymes-mansfield'],
-      trackRecord: [
-        { queen: 'Sasha Velour', placements: ['SAFE', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'SAFE', 'Winner'] },
-        { queen: 'Peppermint', placements: ['SAFE', 'SAFE', 'SAFE', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'Runner-up'] },
-        { queen: 'Shea Couleé', placements: ['SAFE', 'SAFE', 'SAFE', 'WIN', 'WIN', 'SAFE', 'SAFE', 'HIGH', 'WIN', 'BTM2', 'WIN', 'SAFE', 'ELIM'] },
-        { queen: 'Trinity the Tuck', placements: ['SAFE', 'SAFE', 'WIN', 'BTM2', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'LOW', 'WIN', 'SAFE', 'SAFE', 'ELIM'] },
-        { queen: 'Alexis Michelle', placements: ['HIGH', 'SAFE', 'SAFE', 'HIGH', 'HIGH', 'WIN', 'HIGH', 'BTM2', 'SAFE', 'LOW', 'ELIM', '', ''] },
-        { queen: 'Nina Bo\'nina Brown', placements: ['WIN', 'HIGH', 'LOW', 'SAFE', 'SAFE', 'SAFE', 'BTM2', 'LOW', 'BTM2', 'ELIM', '', '', ''] },
-        { queen: 'Valentina', placements: ['SAFE', 'WIN', 'HIGH', 'SAFE', 'SAFE', 'SAFE', 'SAFE', 'LOW', 'ELIM', '', '', '', ''] },
-        { queen: 'Farrah Moan', placements: ['SAFE', 'SAFE', 'BTM2', 'SAFE', 'BTM2', 'SAFE', 'LOW', 'ELIM', '', '', '', '', ''] },
-        { queen: 'Aja', placements: ['LOW', 'SAFE', 'BTM2', 'SAFE', 'SAFE', 'LOW', 'ELIM', '', '', '', '', '', ''] },
-        { queen: 'Cynthia Lee Fontaine', placements: ['', 'IN', 'SAFE', 'SAFE', 'BTM2', 'ELIM', '', '', '', '', '', '', ''] },
-        { queen: 'Eureka', placements: ['SAFE', 'HIGH', 'SAFE', 'SAFE', 'WDR', '', '', '', '', '', '', '', ''] },
-        { queen: 'Charlie Hides', placements: ['SAFE', 'SAFE', 'LOW', 'ELIM', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Kimora Blac', placements: ['SAFE', 'BTM2', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Jaymes Mansfield', placements: ['BTM2', 'ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-      ]
-    },
-    '7': {
-        id: '7', franchiseId: 'rpdr-us', seasonNumber: '7', year: 2015,
-        poster: 'https://placehold.co/400x600/be185d/ffffff?text=Season+7',
-        winner: 'Violet Chachki', runnersUp: ['Ginger Minj', 'Pearl'], missCongeniality: 'Katya',
-        contestants: ['violet-chachki', 'ginger-minj', 'pearl', 'kennedy-davenport', 'katya', 'trixie-mattel', 'miss-fame', 'jaidynn-diore-fierce', 'max', 'kandy-ho', 'mrs-kasha-davis', 'jasmine-masters', 'sasha-belle', 'tempest-dujour'],
-        trackRecord: [
-            { queen: 'Violet Chachki', placements: ['WIN', 'SAFE', 'SAFE', 'LOW', 'SAFE', 'WIN', 'LOW', 'WIN', 'HIGH', 'SAFE', 'SAFE', 'Winner'] },
-            { queen: 'Ginger Minj', placements: ['WIN', 'WIN', 'SAFE', 'BTM2', 'SAFE', 'SAFE', 'HIGH', 'SAFE', 'WIN', 'SAFE', 'BTM2', 'Runner-up'] },
-            { queen: 'Pearl', placements: ['BTM2', 'WIN', 'SAFE', 'SAFE', 'HIGH', 'SAFE', 'SAFE', 'BTM2', 'LOW', 'WIN', 'SAFE', 'Runner-up'] },
-            { queen: 'Kennedy Davenport', placements: ['SAFE', 'BTM2', 'WIN', 'SAFE', 'WIN', 'SAFE', 'WIN', 'LOW', 'BTM2', 'ELIM', '', ''] },
-            { queen: 'Katya', placements: ['HIGH', 'LOW', 'HIGH', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'HIGH', 'BTM2', 'ELIM', '', ''] },
-            { queen: 'Trixie Mattel', placements: ['SAFE', 'SAFE', 'LOW', 'ELIM', 'IN', 'LOW', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Miss Fame', placements: ['SAFE', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'LOW', 'SAFE', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Jaidynn Diore Fierce', placements: ['SAFE', 'HIGH', 'SAFE', 'HIGH', 'BTM2', 'SAFE', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Max', placements: ['HIGH', 'SAFE', 'WIN', 'WIN', 'LOW', 'ELIM', '', '', '', '', '', ''] },
-            { queen: 'Kandy Ho', placements: ['BTM2', 'SAFE', 'BTM2', 'BTM2', 'ELIM', '', '', '', '', '', '', ''] },
-            { queen: 'Mrs. Kasha Davis', placements: ['SAFE', 'HIGH', 'ELIM', '', '', '', '', '', '', '', '', ''] },
-            { queen: 'Jasmine Masters', placements: ['LOW', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
-            { queen: 'Sasha Belle', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-            { queen: 'Tempest DuJour', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] }
-        ]
-    },
-    '6': {
-      id: '6', franchiseId: 'rpdr-us', seasonNumber: '6', year: 2014,
-      poster: 'https://placehold.co/400x600/0369a1/ffffff?text=Season+6',
-      winner: 'Bianca Del Rio', runnersUp: ['Adore Delano', 'Courtney Act'], missCongeniality: 'BenDeLaCreme',
-      contestants: ['bianca-del-rio', 'adore-delano', 'courtney-act', 'darienne-lake', 'bendelacreme', 'joslyn-fox', 'trinity-k-bonet', 'laganja-estranja', 'milk', 'gia-gunn', 'april-carrion', 'vivacious', 'magnolia-crawford', 'kelly-mantle'],
-      trackRecord: [
-        { queen: 'Bianca Del Rio', placements: ['SAFE', 'WIN', 'HIGH', 'HIGH', 'SAFE', 'WIN', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'SAFE', 'Winner'] },
-        { queen: 'Adore Delano', placements: ['SAFE', 'BTM2', 'WIN', 'SAFE', 'WIN', 'LOW', 'BTM2', 'SAFE', 'WIN', 'HIGH', 'SAFE', 'Runner-up'] },
-        { queen: 'Courtney Act', placements: ['SAFE', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'HIGH', 'HIGH', 'BTM2', 'LOW', 'WIN', 'SAFE', 'Runner-up'] },
-        { queen: 'Darienne Lake', placements: ['WIN', 'SAFE', 'SAFE', 'LOW', 'SAFE', 'BTM2', 'WIN', 'LOW', 'BTM2', 'BTM2', 'ELIM', ''] },
-        { queen: 'BenDeLaCreme', placements: ['WIN', 'WIN', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'HIGH', 'ELIM', '', '', '', 'Miss C'] },
-        { queen: 'Joslyn Fox', placements: ['SAFE', 'SAFE', 'BTM2', 'SAFE', 'HIGH', 'WIN', 'ELIM', '', '', '', '', ''] },
-        { queen: 'Trinity K. Bonet', placements: ['BTM2', 'SAFE', 'WIN', 'WIN', 'ELIM', '', '', '', '', '', '', ''] },
-        { queen: 'Laganja Estranja', placements: ['HIGH', 'WIN', 'LOW', 'ELIM', '', '', '', '', '', '', '', ''] },
-        { queen: 'Milk', placements: ['HIGH', 'LOW', 'ELIM', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Gia Gunn', placements: ['LOW', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'April Carrión', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Vivacious', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Magnolia Crawford', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Kelly Mantle', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] }
-      ]
-    },
-    '5': {
-      id: '5', franchiseId: 'rpdr-us', seasonNumber: '5', year: 2013,
-      poster: 'https://placehold.co/400x600/701a75/ffffff?text=Season+5',
-      winner: 'Jinkx Monsoon', runnersUp: ['Alaska', 'Roxxxy Andrews'], missCongeniality: 'Ivy Winters',
-      contestants: ['jinkx-monsoon', 'alaska', 'roxxxy-andrews', 'detox', 'coco-montrese', 'alyssa-edwards', 'ivy-winters', 'jade-jolie', 'lineysha-sparx', 'honey-mahogany', 'vivienne-pinay', 'monica-beverly-hillz', 'serena-chacha', 'penny-tration'],
-      trackRecord: [
-        { queen: 'Jinkx Monsoon', placements: ['HIGH', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'WIN', 'LOW', 'HIGH', 'WIN', 'BTM2', 'SAFE', 'Winner'] },
-        { queen: 'Alaska', placements: ['SAFE', 'BTM2', 'HIGH', 'LOW', 'WIN', 'HIGH', 'BTM2', 'WIN', 'LOW', 'HIGH', 'SAFE', 'Runner-up'] },
-        { queen: 'Roxxxy Andrews', placements: ['WIN', 'SAFE', 'WIN', 'SAFE', 'HIGH', 'LOW', 'WIN', 'BTM2', 'HIGH', 'WIN', 'BTM2', 'Runner-up'] },
-        { queen: 'Detox', placements: ['SAFE', 'SAFE', 'LOW', 'WIN', 'BTM2', 'SAFE', 'HIGH', 'SAFE', 'BTM2', 'ELIM', '', ''] },
-        { queen: 'Coco Montrese', placements: ['BTM2', 'LOW', 'SAFE', 'HIGH', 'SAFE', 'BTM2', 'BTM2', 'ELIM', '', '', '', ''] },
-        { queen: 'Alyssa Edwards', placements: ['LOW', 'HIGH', 'BTM2', 'SAFE', 'WIN', 'ELIM', '', '', '', '', '', ''] },
-        { queen: 'Ivy Winters', placements: ['SAFE', 'WIN', 'HIGH', 'SAFE', 'ELIM', '', '', '', '', '', '', 'Miss C'] },
-        { queen: 'Jade Jolie', placements: ['HIGH', 'SAFE', 'ELIM', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Lineysha Sparx', placements: ['WIN', 'HIGH', 'ELIM', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Honey Mahogany', placements: ['LOW', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Vivienne Pinay', placements: ['SAFE', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Monica Beverly Hillz', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Serena ChaCha', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-        { queen: 'Penny Tration', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
-      ]
-    },
-    // All Stars
-    '7': { id: '7', franchiseId: 'rpdr-as', seasonNumber: 'All Stars 7', year: 2022, poster: 'https://placehold.co/400x600/ca8a04/000000?text=All+Winners', winner: 'Jinkx Monsoon', runnersUp: ['Monét X Change'], contestants: ['jinkx-monsoon', 'monet-x-change', 'shea-coulee', 'trinity-the-tuck', 'raja', 'the-vivienne', 'yvie-oddly', 'jaida-essence-hall'], trackRecord: [] },
-    '2': {
-      id: '2', franchiseId: 'rpdr-as', seasonNumber: 'All Stars 2', year: 2016,
-      poster: 'https://placehold.co/400x600/c2410c/ffffff?text=All+Stars+2',
-      winner: 'Alaska', runnersUp: ['Detox', 'Katya'],
-      contestants: ['alaska', 'detox', 'katya', 'roxxxy-andrews', 'alyssa-edwards', 'tatianna', 'phi-phi-ohara', 'ginger-minj', 'adore-delano', 'coco-montrese'],
-      trackRecord: [
-        { queen: 'Alaska', placements: ['WIN', 'SAFE', 'WIN', 'WIN', 'BTM', 'WIN', 'SAFE', 'Winner'] },
-        { queen: 'Detox', placements: ['SAFE', 'WIN', 'SAFE', 'BTM', 'WIN', 'SAFE', 'WIN', 'Runner-up'] },
-        { queen: 'Katya', placements: ['SAFE', 'WIN', 'BTM', 'SAFE', 'ELIM', 'IN', 'WIN', 'Runner-up'] },
-        { queen: 'Roxxxy Andrews', placements: ['WIN', 'SAFE', 'BTM', 'SAFE', 'BTM', 'BTM', 'BTM', 'ELIM'] },
-        { queen: 'Alyssa Edwards', placements: ['BTM', 'SAFE', 'WIN', 'ELIM', 'IN', 'ELIM', '', ''] },
-        { queen: 'Tatianna', placements: ['HIGH', 'HIGH', 'ELIM', '', 'IN', 'ELIM', '', ''] },
-        { queen: 'Phi Phi O\'Hara', placements: ['LOW', 'BTM', 'WIN', 'LOW', 'ELIM', '', '', ''] },
-        { queen: 'Ginger Minj', placements: ['SAFE', 'LOW', 'ELIM', '', '', '', '', ''] },
-        { queen: 'Adore Delano', placements: ['SAFE', 'WDR', '', '', '', '', '', ''] },
-        { queen: 'Coco Montrese', placements: ['ELIM', '', '', '', '', '', '', ''] },
-      ]
-    },
-    '3': {
-        id: '3', franchiseId: 'rpdr-as', seasonNumber: 'All Stars 3', year: 2018,
-        poster: 'https://placehold.co/400x600/f59e0b/000000?text=All+Stars+3',
-        winner: 'Trixie Mattel', runnersUp: ['Kennedy Davenport'],
-        contestants: ['trixie-mattel', 'kennedy-davenport', 'shangela', 'bebe-zahara-benet', 'aja', 'bendelacreme', 'chi-chi-devayne', 'milk', 'thorgy-thor', 'morgan-mcmichaels'],
-        trackRecord: [
-            { queen: 'Trixie Mattel', placements: ['SAFE', 'SAFE', 'SAFE', 'BTM', 'TOP2', 'BTM', 'WIN', 'Winner'] },
-            { queen: 'Kennedy Davenport', placements: ['HIGH', 'TOP2', 'SAFE', 'WIN', 'LOW', 'SAFE', 'TOP2', 'Runner-up'] },
-            { queen: 'Shangela', placements: ['HIGH', 'WIN', 'LOW', 'SAFE', 'TOP2', 'WIN', 'BTM', 'ELIM'] },
-            { queen: 'BeBe Zahara Benet', placements: ['WIN', 'SAFE', 'HIGH', 'HIGH', 'TOP2', 'WIN', 'SAFE', 'ELIM'] },
-            { queen: 'Aja', placements: ['WIN', 'HIGH', 'HIGH', 'LOW', 'ELIM', '', '', ''] },
-            { queen: 'BenDeLaCreme', placements: ['WIN', 'WIN', 'WIN', 'WIN', 'WIN', 'WDR', '', ''] },
-            { queen: 'Chi Chi DeVayne', placements: ['LOW', 'LOW', 'BTM', 'ELIM', '', '', '', ''] },
-            { queen: 'Milk', placements: ['BTM', 'BTM', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Thorgy Thor', placements: ['ELIM', '', '', '', '', '', '', ''] },
-            { queen: 'Morgan McMichaels', placements: ['ELIM', 'IN', 'ELIM', '', '', '', '', ''] }
-        ]
-    },
-    // UK Seasons
-    '101': {
-        id: '101', franchiseId: 'rpdr-uk', seasonNumber: '1', year: 2019,
-        poster: 'https://placehold.co/400x600/1e40af/ffffff?text=UK+S1',
-        winner: 'The Vivienne', runnersUp: ['Divina De Campo'], missCongeniality: 'Scaredy Kat',
-        contestants: ['the-vivienne', 'divina-de-campo', 'baga-chipz', 'cheryl-hole', 'blu-hydrangea', 'crystal', 'sum-ting-wong', 'vinegar-strokes', 'scaredy-kat', 'gothy-kendoll'],
-        trackRecord: [
-            { queen: 'The Vivienne', placements: ['WIN', 'SAFE', 'WIN', 'HIGH', 'WIN', 'BTM2', 'HIGH', 'Winner'] },
-            { queen: 'Divina De Campo', placements: ['HIGH', 'HIGH', 'WIN', 'WIN', 'HIGH', 'WIN', 'BTM2', 'Runner-up'] },
-            { queen: 'Baga Chipz', placements: ['HIGH', 'WIN', 'WIN', 'HIGH', 'LOW', 'SAFE', 'ELIM', ''] },
-            { queen: 'Cheryl Hole', placements: ['LOW', 'SAFE', 'SAFE', 'BTM2', 'BTM2', 'ELIM', '', ''] },
-            { queen: 'Blu Hydrangea', placements: ['SAFE', 'WIN', 'LOW', 'BTM2', 'ELIM', '', '', ''] },
-            { queen: 'Crystal', placements: ['SAFE', 'HIGH', 'SAFE', 'ELIM', '', '', '', ''] },
-            { queen: 'Sum Ting Wong', placements: ['SAFE', 'BTM2', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Vinegar Strokes', placements: ['BTM2', 'ELIM', '', '', '', '', '', ''] },
-            { queen: 'Scaredy Kat', placements: ['ELIM', '', '', '', '', '', '', 'Miss C'] },
-            { queen: 'Gothy Kendoll', placements: ['ELIM', '', '', '', '', '', '', ''] }
-        ]
-    },
-    '102': {
-        id: '102', franchiseId: 'rpdr-uk', seasonNumber: '2', year: 2021,
-        poster: 'https://placehold.co/400x600/500724/ffffff?text=UK+S2',
-        winner: 'Lawrence Chaney', runnersUp: ['Bimini Bon-Boulash', 'Tayce'], missCongeniality: 'Lawrence Chaney',
-        contestants: ['lawrence-chaney', 'bimini-bon-boulash', 'tayce', 'ellie-diamond', 'awhora', 'tia-kofi', 'joe-black', 'veronica-green', 'sister-sister', 'asttina-mandella', 'cherry-valentine', 'ginny-lemon'],
-        trackRecord: [
-            { queen: 'Lawrence Chaney', placements: ['HIGH', 'WIN', 'WIN', 'SAFE', 'WIN', 'BTM2', 'SAFE', 'SAFE', 'LOW', 'Winner'] },
-            { queen: 'Bimini Bon-Boulash', placements: ['LOW', 'SAFE', 'BTM2', 'WIN', 'SAFE', 'WIN', 'WIN', 'WIN', 'HIGH', 'Runner-up'] },
-            { queen: 'Tayce', placements: ['SAFE', 'BTM2', 'SAFE', 'BTM2', 'HIGH', 'BTM2', 'HIGH', 'BTM2', 'WIN', 'Runner-up'] },
-            { queen: 'Ellie Diamond', placements: ['SAFE', 'HIGH', 'SAFE', 'SAFE', 'HIGH', 'HIGH', 'LOW', 'SAFE', 'ELIM', ''] },
-            { queen: 'A\'Whora', placements: ['HIGH', 'HIGH', 'HIGH', 'HIGH', 'WIN', 'LOW', 'ELIM', '', '', ''] },
-            { queen: 'Tia Kofi', placements: ['BTM2', 'LOW', 'LOW', 'LOW', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Joe Black', placements: ['ELIM', 'IN', 'ELIM', '', '', '', '', '', '', ''] },
-            { queen: 'Veronica Green', placements: ['WIN', 'HIGH', 'HIGH', 'WDR', '', '', '', '', '', ''] },
-            { queen: 'Sister Sister', placements: ['SAFE', 'SAFE', 'BTM2', 'ELIM', '', '', '', '', '', ''] },
-            { queen: 'Asttina Mandella', placements: ['WIN', 'ELIM', '', '', '', '', '', '', '', ''] },
-            { queen: 'Cherry Valentine', placements: ['ELIM', '', '', '', '', '', '', '', '', ''] },
-            { queen: 'Ginny Lemon', placements: ['SAFE', 'SAFE', 'WDR', '', '', '', '', '', '', ''] },
-        ]
-    },
-    // Canada Season
-    '201': {
-        id: '201', franchiseId: 'canada-dr', seasonNumber: '1', year: 2020,
-        poster: 'https://placehold.co/400x600/7e22ce/ffffff?text=Canada+S1',
-        winner: 'Priyanka', runnersUp: ['Rita Baga', 'Scarlett BoBo'], missCongeniality: 'Ilona Verley',
-        contestants: ['priyanka', 'rita-baga', 'scarlett-bobo', 'jimbo', 'lemon', 'ilona-verley', 'boa', 'kiara', 'tynomi-banks', 'anastarzia-anaquway', 'kyne', 'juice-boxx'],
-        trackRecord: [
-            { queen: 'Priyanka', placements: ['WIN', 'SAFE', 'BTM2', 'WIN', 'BTM2', 'LOW', 'SAFE', 'BTM2', 'HIGH', 'Winner'] },
-            { queen: 'Rita Baga', placements: ['WIN', 'HIGH', 'WIN', 'SAFE', 'LOW', 'WIN', 'BTM2', 'HIGH', 'SAFE', 'Runner-up'] },
-            { queen: 'Scarlett BoBo', placements: ['SAFE', 'SAFE', 'HIGH', 'HIGH', 'HIGH', 'SAFE', 'WIN', 'WIN', 'SAFE', 'Runner-up'] },
-            { queen: 'Jimbo', placements: ['SAFE', 'WIN', 'SAFE', 'LOW', 'WIN', 'HIGH', 'BTM2', 'ELIM', '', ''] },
-            { queen: 'Lemon', placements: ['LOW', 'BTM2', 'WIN', 'WIN', 'SAFE', 'BTM2', 'ELIM', '', '', ''] },
-            { queen: 'Ilona Verley', placements: ['HIGH', 'LOW', 'BTM2', 'SAFE', 'BTM2', 'ELIM', '', '', '', 'Miss C'] },
-            { queen: 'BOA', placements: ['SAFE', 'SAFE', 'SAFE', 'BTM2', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Kiara', placements: ['BTM2', 'HIGH', 'HIGH', 'ELIM', '', '', '', '', '', ''] },
-            { queen: 'Tynomi Banks', placements: ['LOW', 'BTM2', 'ELIM', '', '', '', '', '', '', ''] },
-            { queen: 'Anastarzia Anaquway', placements: ['HIGH', 'ELIM', '', '', '', '', '', '', '', ''] },
-            { queen: 'Kyne', placements: ['ELIM', '', '', '', '', '', '', '', '', ''] },
-            { queen: 'Juice Boxx', placements: ['ELIM', '', '', '', '', '', '', '', '', ''] }
-        ]
-    },
-    // Down Under Season
-    '301': {
-        id: '301', franchiseId: 'drag-race-du', seasonNumber: '1', year: 2021,
-        poster: 'https://placehold.co/400x600/065f46/ffffff?text=Down+Under+S1',
-        winner: 'Kita Mean', runnersUp: ['Art Simone', 'Karen from Finance', 'Scarlet Adams'], missCongeniality: 'Anita Wigl\'it',
-        contestants: ['kita-mean', 'art-simone', 'karen-from-finance', 'scarlet-adams', 'elektra-shock', 'maxi-shield', 'etcetera-etcetera', 'coco-jumbo', 'anita-wiglit', 'jojo-zaho'],
-        trackRecord: [
-            { queen: 'Kita Mean', placements: ['SAFE', 'LOW', 'BTM2', 'SAFE', 'WIN', 'SAFE', 'HIGH', 'Winner'] },
-            { queen: 'Art Simone', placements: ['BTM2', 'ELIM', 'IN', 'HIGH', 'SAFE', 'BTM2', 'HIGH', 'Runner-up'] },
-            { queen: 'Karen from Finance', placements: ['WIN', 'SAFE', 'SAFE', 'SAFE', 'LOW', 'HIGH', 'LOW', 'Runner-up'] },
-            { queen: 'Scarlet Adams', placements: ['HIGH', 'WIN', 'HIGH', 'WIN', 'BTM2', 'LOW', 'WIN', 'Runner-up'] },
-            { queen: 'Elektra Shock', placements: ['BTM2', 'SAFE', 'SAFE', 'BTM2', 'HIGH', 'WIN', 'ELIM', ''] },
-            { queen: 'Maxi Shield', placements: ['SAFE', 'SAFE', 'WIN', 'LOW', 'ELIM', '', '', ''] },
-            { queen: 'Etcetera Etcetera', placements: ['SAFE', 'HIGH', 'LOW', 'ELIM', '', '', '', ''] },
-            { queen: 'Coco Jumbo', placements: ['LOW', 'BTM2', 'ELIM', '', '', '', '', ''] },
-            { queen: 'Anita Wigl\'it', placements: ['HIGH', 'WIN', 'ELIM', '', '', '', '', 'Miss C'] },
-            { queen: 'Jojo Zaho', placements: ['ELIM', '', '', '', '', '', '', ''] }
-        ]
-    }
-  },
-  queens: {
-    // S9 Queens
-    'sasha-velour': { id: 'sasha-velour', name: 'Sasha Velour', realName: 'Alexander Hedges Steinberg', hometown: 'Brooklyn, NY', ageAtFilming: 29, profilePic: 'https://placehold.co/400x400/f0abfc/1e1b4b?text=Sasha+V', banner: 'https://placehold.co/1200x400/a21caf/1e1b4b?text=Sasha', bio: 'A true artist and intellectual, Sasha Velour brought a unique, high-concept approach to drag, culminating in one of the most iconic finale performances in Drag Race history.', seasons: [{seasonId: '9', outcome: 'Winner'}], lipSyncs: [{ song: 'So Emotional', opponent: 'Shea Couleé', outcome: 'Won', season: '9' }, { song: 'It\'s Not Right but It\'s Okay', opponent: 'Peppermint', outcome: 'Won', season: '9' }], career: { media: ['NightGowns', 'Smoke & Mirrors'], literature: ['Velour, The Drag Magazine'] } },
-    'peppermint': { id: 'peppermint', name: 'Peppermint', realName: 'Agnes Moore', hometown: 'New York City, NY', ageAtFilming: 37, profilePic: 'https://placehold.co/400x400/f472b6/1e1b4b?text=Peppermint', banner: 'https://placehold.co/1200x400/db2777/1e1b4b?text=Peppermint', bio: 'The "Lip-Sync Assassin" of her season, Peppermint is a New York City legend and a powerful activist for the trans community.', seasons: [{seasonId: '9', outcome: 'Runner-up'}], lipSyncs: [{ song: 'Music', opponent: 'Cynthia Lee Fontaine', outcome: 'Won', season: '9' }, { song: 'Macho Man', opponent: 'Alexis Michelle', outcome: 'Won', season: '9' }, { song: 'Stronger', opponent: 'Trinity the Tuck', outcome: 'Won', season: '9' }], career: {media: ['Head Over Heels (Broadway)']} },
-    'shea-coulee': { id: 'shea-coulee', name: 'Shea Couleé', realName: 'Jaren Kyei Merrell', hometown: 'Chicago, IL', ageAtFilming: 27, profilePic: 'https://placehold.co/400x400/eab308/1e1b4b?text=Shea', banner: 'https://placehold.co/1200x400/ca8a04/1e1b4b?text=Shea', bio: 'A dominant force in Season 9, Shea Couleé excelled in nearly every challenge, showcasing her incredible talent and fashion.', seasons: [{seasonId: '9', outcome: '3rd/4th Place'}, {seasonId: 'as5', outcome: 'Winner'}, {seasonId: 'as7', outcome: '3rd/4th Place'}], lipSyncs: [], career: {music:['Couleé-D']} },
-    'trinity-the-tuck': { id: 'trinity-the-tuck', name: 'Trinity the Tuck', realName: 'Ryan Taylor', hometown: 'Orlando, FL', ageAtFilming: 31, profilePic: 'https://placehold.co/400x400/38bdf8/1e1b4b?text=Trinity', banner: 'https://placehold.co/1200x400/0ea5e9/1e1b4b?text=Trinity', bio: 'Starting as a pageant queen, Trinity "The Tuck" proved to be a versatile and hilarious competitor, known for her sharp wit and body-ody-ody.', seasons: [{seasonId: '9', outcome: '3rd/4th Place'}, {seasonId: 'as4', outcome: 'Winner'}, {seasonId: 'as7', outcome: '3rd/4th Place'}], lipSyncs: [], career: {} },
-    // S7 Queens
-    'violet-chachki': { id: 'violet-chachki', name: 'Violet Chachki', realName: 'Paul Jason Dardo', hometown: 'Atlanta, GA', ageAtFilming: 22, profilePic: 'https://placehold.co/400x400/be185d/ffffff?text=Violet', banner: 'https://placehold.co/1200x400/9d174d/ffffff?text=Violet', bio: 'A high-fashion look queen and aerialist who stunned the judges with her tiny waist and iconic two-in-one tartan reveal.', seasons: [{seasonId: '7', outcome: 'Winner'}], lipSyncs: [], career: {} },
-    'ginger-minj': { id: 'ginger-minj', name: 'Ginger Minj', realName: 'Joshua Allen Eads', hometown: 'Orlando, FL', ageAtFilming: 29, profilePic: 'https://placehold.co/400x400/f97316/ffffff?text=Ginger', banner: 'https://placehold.co/1200x400/ea580c/ffffff?text=Ginger', bio: 'A self-described "glamour toad," Ginger excelled at comedy and acting challenges with her sharp wit and classic camp sensibility.', seasons: [{seasonId: '7', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '8th Place'}, {seasonId: 'as6', outcome: 'Runner-up'}], lipSyncs: [], career: {} },
-    'pearl': { id: 'pearl', name: 'Pearl', realName: 'Matthew James Lent', hometown: 'Brooklyn, NY', ageAtFilming: 23, profilePic: 'https://placehold.co/400x400/64748b/ffffff?text=Pearl', banner: 'https://placehold.co/1200x400/475569/ffffff?text=Pearl', bio: 'The "flazéda" queen whose sleepy, cool-girl demeanor hid a fierce competitor. Had a famously tense staredown with RuPaul.', seasons: [{seasonId: '7', outcome: 'Runner-up'}], lipSyncs: [], career: {} },
-    'katya': { id: 'katya', name: 'Katya', realName: 'Brian McCook', hometown: 'Boston, MA', ageAtFilming: 32, profilePic: 'https://placehold.co/400x400/dc2626/ffffff?text=Katya', banner: 'https://placehold.co/1200x400/b91c1c/ffffff?text=Katya', bio: 'Your average, run-of-the-mill, Russian, bisexual, transvestite hooker who captured hearts with her bizarre humor and anxiety-ridden charm.', seasons: [{seasonId: '7', outcome: '5th Place', missCongeniality: true}, {seasonId: 'as2', outcome: 'Runner-up'}], lipSyncs: [], career: { media: ['UNHhhh', 'The Trixie & Katya Show', 'I\'m a Celebrity...Get Me Out of Here!'], literature: ['Trixie and Katya\'s Guide to Modern Womanhood'] } },
-    'trixie-mattel': { id: 'trixie-mattel', name: 'Trixie Mattel', realName: 'Brian Michael Firkus', hometown: 'Milwaukee, WI', ageAtFilming: 24, profilePic: 'https://placehold.co/400x400/f472b6/000000?text=Trixie', banner: 'https://placehold.co/1200x400/f9a8d4/000000?text=Trixie', bio: 'A life-in-plastic folk-singing comedy queen, Trixie was eliminated early but returned to become one of the franchise\'s most successful alumnae.', seasons: [{seasonId: '7', outcome: '6th Place'}, {seasonId: 'as3', outcome: 'Winner'}], lipSyncs: [{ song: 'Dreaming', opponent: 'Pearl', outcome: 'Lost', season: '7'}, { song: 'Show Me Love', opponent: 'Ginger Minj', outcome: 'Lost', season: '7'}, { song: 'Wrecking Ball', opponent: 'Kennedy Davenport', outcome: 'Won', season: 'as3' }], career: { music: ['Two Birds', 'One Stone', 'Barbara'], business: ['Trixie Cosmetics', 'Trixie Motel'], media: ['UNHhhh', 'The Bald and the Beautiful', 'Trixie Motel'] } },
-    // S6 Queens
-    'bianca-del-rio': { id: 'bianca-del-rio', name: 'Bianca Del Rio', realName: 'Roy Haylock', hometown: 'New York, NY', ageAtFilming: 37, profilePic: 'https://placehold.co/400x400/0369a1/ffffff?text=Bianca', banner: 'https://placehold.co/1200x400/0891b2/ffffff?text=Bianca', bio: 'An insult comic with a heart of gold, Bianca Del Rio is considered one of the most dominant winners in Drag Race history, never placing in the bottom.', seasons: [{seasonId: '6', outcome: 'Winner'}], lipSyncs: [], career: {media: ['Hurricane Bianca'], tours: ['It\'s Jester Joke', 'Blame It On Bianca Del Rio']} },
-    'adore-delano': { id: 'adore-delano', name: 'Adore Delano', realName: 'Danielle Noriega', hometown: 'Azusa, CA', ageAtFilming: 23, profilePic: 'https://placehold.co/400x400/9333ea/ffffff?text=Adore', banner: 'https://placehold.co/1200x400/a855f7/ffffff?text=Adore', bio: 'A former American Idol contestant, Adore brought a punk-rock, grunge aesthetic and a "party" personality that made her a massive fan favorite.', seasons: [{seasonId: '6', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '9th Place (WDR)'}], lipSyncs: [], career: {music: ['Till Death Do Us Party', 'After Party']} },
-    'courtney-act': { id: 'courtney-act', name: 'Courtney Act', realName: 'Shane Jenek', hometown: 'Sydney, Australia', ageAtFilming: 31, profilePic: 'https://placehold.co/400x400/db2777/ffffff?text=Courtney', banner: 'https://placehold.co/1200x400/e11d48/ffffff?text=Courtney', bio: 'Polished and professional, this Australian Idol alum showcased incredible vocals and flawless runway presentations.', seasons: [{seasonId: '6', outcome: 'Runner-up'}], lipSyncs: [], career: {media: ['Celebrity Big Brother UK (Winner)', 'Dancing with the Stars (Australia)']} },
-    'bendelacreme': { id: 'bendelacreme', name: 'BenDeLaCreme', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=DeLa', bio: 'Terminally delightful, BenDeLaCreme is a powerhouse of comedy and performance, holding the record for the most challenge wins in a single season.', seasons: [{seasonId: '6', outcome: '5th Place', missCongeniality: true}, {seasonId: 'as3', outcome: '6th Place (WDR)'}], lipSyncs:[] },
-    // S5 Queens
-    'jinkx-monsoon': { id: 'jinkx-monsoon', name: 'Jinkx Monsoon', realName: 'Hera Hoffer', hometown: 'Seattle, WA', ageAtFilming: 24, profilePic: 'https://placehold.co/400x400/701a75/ffffff?text=Jinkx', banner: 'https://placehold.co/1200x400/86198f/ffffff?text=Jinkx', bio: 'The "internationally tolerated" cabaret star and narcoleptic, Jinkx proved that talent and character could triumph over fashion. "Water off a duck\'s back."', seasons: [{seasonId: '5', outcome: 'Winner'}, {seasonId: 'as7', outcome: 'Winner'}], lipSyncs: [], career: {media: ['Chicago (Broadway)'], music: ['The Inevitable Album', 'The Ginger Snapped']} },
-    'alaska': { id: 'alaska', name: 'Alaska', realName: 'Justin Andrew Honard', hometown: 'Los Angeles, CA', ageAtFilming: 27, profilePic: 'https://placehold.co/400x400/0284c7/ffffff?text=Alaska', banner: 'https://placehold.co/1200x400/0369a1/ffffff?text=Alaska', bio: 'Hiiiiii! The snake-like queen from the planet Glamtron, Alaska\'s unique brand of comedy and extraterrestrial glamour made her a standout and an All Stars legend.', seasons: [{seasonId: '5', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: 'Winner'}], lipSyncs: [{ song: 'Read U Wrote U', opponent: 'All', outcome: 'Won', season:'as2' }], career: { music: ['Anus', 'Poundcake', 'Vagina'], media: ['Race Chaser (Podcast)'] } },
-    'roxxxy-andrews': { id: 'roxxxy-andrews', name: 'Roxxxy Andrews', realName: 'Michael Feliciano', hometown: 'Orlando, FL', ageAtFilming: 28, profilePic: 'https://placehold.co/400x400/c2410c/ffffff?text=Roxxxy', banner: 'https://placehold.co/1200x400/ea580c/ffffff?text=Roxxxy', bio: 'Known for her flawless runway looks and the iconic "Whip My Hair" wig reveal, Roxxxy is here to make it clear.', seasons: [{seasonId: '5', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '4th Place'}], lipSyncs: [], career: {} },
-    // UK Queens
-    'the-vivienne': { id: 'the-vivienne', name: 'The Vivienne', hometown: 'Liverpool, England', ageAtFilming: 27, profilePic: 'https://placehold.co/400x400/1e40af/ffffff?text=The+Vivienne', banner: 'https://placehold.co/1200x400/1d4ed8/ffffff?text=The+Vivienne', bio: 'The first-ever winner of RuPaul\'s Drag Race UK, known for her killer impersonations, especially Donald Trump.', seasons: [{seasonId: '101', outcome: 'Winner'}, {seasonId: 'as7', outcome: '3rd/4th Place'}], lipSyncs: [], career: {} },
-    'lawrence-chaney': { id: 'lawrence-chaney', name: 'Lawrence Chaney', hometown: 'Glasgow, Scotland', ageAtFilming: 23, profilePic: 'https://placehold.co/400x400/500724/ffffff?text=Lawrence', banner: 'https://placehold.co/1200x400/831843/ffffff?text=Lawrence', bio: 'This Scottish legend is "purple, plastic, and fantastic," and won her season with humor and heart.', seasons: [{seasonId: '102', outcome: 'Winner', missCongeniality: true}], lipSyncs: [], career: {} },
-    // Canada Queens
-    'priyanka': { id: 'priyanka', name: 'Priyanka', realName: 'Mark Suknanan', hometown: 'Toronto, Ontario', ageAtFilming: 28, profilePic: 'https://placehold.co/400x400/7e22ce/ffffff?text=Priyanka', banner: 'https://placehold.co/1200x400/9333ea/ffffff?text=Priyanka', bio: '"What\'s her name?!" Canada\'s first-ever drag superstar, Priyanka brought charisma and star power from her past as a children\'s TV host.', seasons: [{seasonId: '201', outcome: 'Winner'}], lipSyncs: [], career: {media: ['Canada\'s Drag Race (Guest Judge)']} },
-    'ilona-verley': { id: 'ilona-verley', name: 'Ilona Verley', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ilona', seasons: [{seasonId: '201', outcome: '6th Place', missCongeniality: true}]},
-    'boa': { id: 'boa', name: 'BOA', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=BOA', seasons: [{seasonId: '201', outcome: '7th Place'}]},
-    'tynomi-banks': { id: 'tynomi-banks', name: 'Tynomi Banks', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tynomi', seasons: [{seasonId: '201', outcome: '9th Place'}]},
-    // Down Under Queens
-    'kita-mean': { id: 'kita-mean', name: 'Kita Mean', hometown: 'Auckland, New Zealand', ageAtFilming: 34, profilePic: 'https://placehold.co/400x400/065f46/ffffff?text=Kita', banner: 'https://placehold.co/1200x400/047857/ffffff?text=Kita', bio: 'The hilarious and heartwarming winner of the inaugural season of Drag Race Down Under, co-owner of Caluzzi Cabaret in Auckland.', seasons: [{seasonId: '301', outcome: 'Winner'}], lipSyncs: [], career: {media: ['House of Drag']} },
-    'anita-wiglit': { id: 'anita-wiglit', name: 'Anita Wigl\'it', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Anita', bio: 'A queen of comedy from New Zealand, known for her quick wit and joyful presence.', seasons: [{seasonId: '301', outcome: '9th Place', missCongeniality: true}], lipSyncs: []},
-    // --- Auto-generated placeholders for other queens ---
-    'alexis-michelle': { id: 'alexis-michelle', name: 'Alexis Michelle', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Alexis', seasons: [{seasonId: '9', outcome: '5th Place'}]},
-    'nina-bonina-brown': { id: 'nina-bonina-brown', name: 'Nina Bo\'nina Brown', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Nina', seasons: [{seasonId: '9', outcome: '6th Place'}]},
-    'valentina': { id: 'valentina', name: 'Valentina', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Valentina', seasons: [{seasonId: '9', outcome: '7th Place', missCongeniality: true}, {seasonId: 'as4', outcome: '7th Place'}]},
-    'farrah-moan': { id: 'farrah-moan', name: 'Farrah Moan', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Farrah', seasons: [{seasonId: '9', outcome: '8th Place'}]},
-    'aja': { id: 'aja', name: 'Aja', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Aja', seasons: [{seasonId: '9', outcome: '9th Place'}]},
-    'cynthia-lee-fontaine': { id: 'cynthia-lee-fontaine', name: 'Cynthia Lee Fontaine', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Cucu', seasons: [{seasonId: '8', outcome: '10th Place', missCongeniality: true}, {seasonId: '9', outcome: '10th Place'}]},
-    'eureka': { id: 'eureka', name: 'Eureka', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Eureka', seasons: [{seasonId: '9', outcome: '11th Place (WDR)'}]},
-    'charlie-hides': { id: 'charlie-hides', name: 'Charlie Hides', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Charlie', seasons: [{seasonId: '9', outcome: '12th Place'}]},
-    'kimora-blac': { id: 'kimora-blac', name: 'Kimora Blac', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kimora', seasons: [{seasonId: '9', outcome: '13th Place'}]},
-    'jaymes-mansfield': { id: 'jaymes-mansfield', name: 'Jaymes Mansfield', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jaymes', seasons: [{seasonId: '9', outcome: '14th Place'}]},
-    'kennedy-davenport': { id: 'kennedy-davenport', name: 'Kennedy Davenport', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kennedy' , seasons: [{seasonId: '7', outcome: '4th Place'}, {seasonId: 'as3', outcome: 'Runner-up'}]},
-    'miss-fame': { id: 'miss-fame', name: 'Miss Fame', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Fame', seasons: [{seasonId: '7', outcome: '7th Place'}]},
-    'jaidynn-diore-fierce': { id: 'jaidynn-diore-fierce', name: 'Jaidynn Diore Fierce', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jaidynn' , seasons: [{seasonId: '7', outcome: '8th Place'}]},
-    'max': { id: 'max', name: 'Max', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Max', seasons: [{seasonId: '7', outcome: '9th Place'}]},
-    'kandy-ho': { id: 'kandy-ho', name: 'Kandy Ho', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kandy', seasons: [{seasonId: '7', outcome: '10th Place'}]},
-    'mrs-kasha-davis': { id: 'mrs-kasha-davis', name: 'Mrs. Kasha Davis', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=MKD', seasons: [{seasonId: '7', outcome: '11th Place'}]},
-    'jasmine-masters': { id: 'jasmine-masters', name: 'Jasmine Masters', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jasmine', seasons: [{seasonId: '7', outcome: '12th Place'}]},
-    'sasha-belle': { id: 'sasha-belle', name: 'Sasha Belle', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Sasha+B', seasons: [{seasonId: '7', outcome: '13th Place'}]},
-    'tempest-dujour': { id: 'tempest-dujour', name: 'Tempest DuJour', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tempest', seasons: [{seasonId: '7', outcome: '14th Place'}]},
-    'darienne-lake': { id: 'darienne-lake', name: 'Darienne Lake', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Darienne' , seasons: [{seasonId: '6', outcome: '4th Place'}]},
-    'joslyn-fox': { id: 'joslyn-fox', name: 'Joslyn Fox', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Joslyn', seasons: [{seasonId: '6', outcome: '6th Place'}]},
-    'trinity-k-bonet': { id: 'trinity-k-bonet', name: 'Trinity K. Bonet', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=TKB', seasons: [{seasonId: '6', outcome: '7th Place'}]},
-    'laganja-estranja': { id: 'laganja-estranja', name: 'Laganja Estranja', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Laganja', seasons: [{seasonId: '6', outcome: '8th Place'}]},
-    'milk': { id: 'milk', name: 'Milk', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Milk', seasons: [{seasonId: '6', outcome: '9th Place'}]},
-    'gia-gunn': { id: 'gia-gunn', name: 'Gia Gunn', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Gia', seasons: [{seasonId: '6', outcome: '10th Place'}]},
-    'april-carrion': { id: 'april-carrion', name: 'April Carrión', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=April', seasons: [{seasonId: '6', outcome: '11th Place'}]},
-    'vivacious': { id: 'vivacious', name: 'Vivacious', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Vivacious', seasons: [{seasonId: '6', outcome: '12th Place'}]},
-    'magnolia-crawford': { id: 'magnolia-crawford', name: 'Magnolia Crawford', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Magnolia', seasons: [{seasonId: '6', outcome: '13th Place'}]},
-    'kelly-mantle': { id: 'kelly-mantle', name: 'Kelly Mantle', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kelly', seasons: [{seasonId: '6', outcome: '14th Place'}]},
-    'detox': { id: 'detox', name: 'Detox', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Detox', seasons: [{seasonId: '5', outcome: '4th Place'}, {seasonId: 'as2', outcome: 'Runner-up'}]},
-    'coco-montrese': { id: 'coco-montrese', name: 'Coco Montrese', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Coco', seasons: [{seasonId: '5', outcome: '5th Place'}]},
-    'alyssa-edwards': { id: 'alyssa-edwards', name: 'Alyssa Edwards', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Alyssa', seasons: [{seasonId: '5', outcome: '6th Place'}]},
-    'ivy-winters': { id: 'ivy-winters', name: 'Ivy Winters', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ivy', seasons: [{seasonId: '5', outcome: '7th Place', missCongeniality: true}]},
-    'jade-jolie': { id: 'jade-jolie', name: 'Jade Jolie', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jade', seasons: [{seasonId: '5', outcome: '8th Place'}]},
-    'lineysha-sparx': { id: 'lineysha-sparx', name: 'Lineysha Sparx', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Lineysha', seasons: [{seasonId: '5', outcome: '9th Place'}]},
-    'honey-mahogany': { id: 'honey-mahogany', name: 'Honey Mahogany', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Honey', seasons: [{seasonId: '5', outcome: '10th Place'}]},
-    'vivienne-pinay': { id: 'vivienne-pinay', name: 'Vivienne Pinay', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Vivienne', seasons: [{seasonId: '5', outcome: '11th Place'}]},
-    'monica-beverly-hillz': { id: 'monica-beverly-hillz', name: 'Monica Beverly Hillz', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Monica', seasons: [{seasonId: '5', outcome: '12th Place'}]},
-    'serena-chacha': { id: 'serena-chacha', name: 'Serena ChaCha', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Serena', seasons: [{seasonId: '5', outcome: '13th Place'}]},
-    'penny-tration': { id: 'penny-tration', name: 'Penny Tration', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Penny', seasons: [{seasonId: '5', outcome: '14th Place'}]},
-    'tatianna': { id: 'tatianna', name: 'Tatianna', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tatianna', seasons: [{seasonId: '2', outcome: '4th Place'}, {seasonId: 'as2', outcome: '6th Place'}]},
-    'phi-phi-ohara': { id: 'phi-phi-ohara', name: 'Phi Phi O\'Hara', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Phi+Phi', seasons: [{seasonId: '4', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '7th Place'}]},
-    'shangela': { id: 'shangela', name: 'Shangela', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Shangela', seasons: [{seasonId: '2', outcome: '12th Place'}, {seasonId: '3', outcome: '6th Place'}, {seasonId: 'as3', outcome: '3rd/4th Place'}]},
-    'bebe-zahara-benet': { id: 'bebe-zahara-benet', name: 'BeBe Zahara Benet', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=BeBe', seasons: [{seasonId: '1', outcome: 'Winner'}, {seasonId: 'as3', outcome: '3rd/4th Place'}]},
-    'chi-chi-devayne': { id: 'chi-chi-devayne', name: 'Chi Chi DeVayne', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Chi+Chi', seasons: [{seasonId: '8', outcome: '4th Place'}, {seasonId: 'as3', outcome: '7th Place'}]},
-    'thorgy-thor': { id: 'thorgy-thor', name: 'Thorgy Thor', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Thorgy', seasons: [{seasonId: '8', outcome: '6th Place'}, {seasonId: 'as3', outcome: '9th Place'}]},
-    'morgan-mcmichaels': { id: 'morgan-mcmichaels', name: 'Morgan McMichaels', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Morgan', seasons: [{seasonId: '2', outcome: '8th Place'}, {seasonId: 'as3', outcome: '10th Place'}]},
-    'divina-de-campo': { id: 'divina-de-campo', name: 'Divina De Campo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Divina', seasons: [{seasonId: '101', outcome: 'Runner-up'}]},
-    'baga-chipz': { id: 'baga-chipz', name: 'Baga Chipz', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Baga', seasons: [{seasonId: '101', outcome: '3rd Place'}]},
-    'cheryl-hole': { id: 'cheryl-hole', name: 'Cheryl Hole', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Cheryl', seasons: [{seasonId: '101', outcome: '4th Place'}]},
-    'blu-hydrangea': { id: 'blu-hydrangea', name: 'Blu Hydrangea', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Blu', seasons: [{seasonId: '101', outcome: '5th Place'}]},
-    'crystal': { id: 'crystal', name: 'Crystal', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Crystal', seasons: [{seasonId: '101', outcome: '6th Place'}]},
-    'sum-ting-wong': { id: 'sum-ting-wong', name: 'Sum Ting Wong', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Sum+Ting', seasons: [{seasonId: '101', outcome: '7th Place'}]},
-    'vinegar-strokes': { id: 'vinegar-strokes', name: 'Vinegar Strokes', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Vinegar', seasons: [{seasonId: '101', outcome: '8th Place'}]},
-    'scaredy-kat': { id: 'scaredy-kat', name: 'Scaredy Kat', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Scaredy', seasons: [{seasonId: '101', outcome: '9th Place', missCongeniality: true}]},
-    'gothy-kendoll': { id: 'gothy-kendoll', name: 'Gothy Kendoll', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Gothy', seasons: [{seasonId: '101', outcome: '10th Place'}]},
-    'bimini-bon-boulash': { id: 'bimini-bon-boulash', name: 'Bimini Bon-Boulash', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Bimini', seasons: [{seasonId: '102', outcome: 'Runner-up'}]},
-    'tayce': { id: 'tayce', name: 'Tayce', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tayce', seasons: [{seasonId: '102', outcome: 'Runner-up'}]},
-    'ellie-diamond': { id: 'ellie-diamond', name: 'Ellie Diamond', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ellie', seasons: [{seasonId: '102', outcome: '4th Place'}]},
-    'awhora': { id: 'awhora', name: 'A\'Whora', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=A%27Whora', seasons: [{seasonId: '102', outcome: '5th Place'}]},
-    'tia-kofi': { id: 'tia-kofi', name: 'Tia Kofi', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tia', seasons: [{seasonId: '102', outcome: '6th Place'}]},
-    'joe-black': { id: 'joe-black', name: 'Joe Black', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Joe', seasons: [{seasonId: '102', outcome: '7th Place'}]},
-    'veronica-green': { id: 'veronica-green', name: 'Veronica Green', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Veronica', seasons: [{seasonId: '102', outcome: '8th Place (WDR)'}]},
-    'sister-sister': { id: 'sister-sister', name: 'Sister Sister', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Sister', seasons: [{seasonId: '102', outcome: '9th Place'}]},
-    'asttina-mandella': { id: 'asttina-mandella', name: 'Asttina Mandella', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Asttina', seasons: [{seasonId: '102', outcome: '10th Place'}]},
-    'cherry-valentine': { id: 'cherry-valentine', name: 'Cherry Valentine', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Cherry', seasons: [{seasonId: '102', outcome: '11th Place'}]},
-    'ginny-lemon': { id: 'ginny-lemon', name: 'Ginny Lemon', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ginny', seasons: [{seasonId: '102', outcome: '12th Place (WDR)'}]},
-    'rita-baga': { id: 'rita-baga', name: 'Rita Baga', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Rita', seasons: [{seasonId: '201', outcome: 'Runner-up'}]},
-    'scarlett-bobo': { id: 'scarlett-bobo', name: 'Scarlett BoBo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=BoBo', seasons: [{seasonId: '201', outcome: 'Runner-up'}]},
-    'jimbo': { id: 'jimbo', name: 'Jimbo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jimbo', seasons: [{seasonId: '201', outcome: '4th Place'}]},
-    'lemon': { id: 'lemon', name: 'Lemon', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Lemon', seasons: [{seasonId: '201', outcome: '5th Place'}]},
-    'kiara': { id: 'kiara', name: 'Kiara', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kiara', seasons: [{seasonId: '201', outcome: '8th Place'}]},
-    'anastarzia-anaquway': { id: 'anastarzia-anaquway', name: 'Anastarzia Anaquway', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Anastarzia', seasons: [{seasonId: '201', outcome: '10th Place'}]},
-    'kyne': { id: 'kyne', name: 'Kyne', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kyne', seasons: [{seasonId: '201', outcome: '11th Place'}]},
-    'juice-boxx': { id: 'juice-boxx', name: 'Juice Boxx', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Juice', seasons: [{seasonId: '201', outcome: '12th Place'}]},
-    'art-simone': { id: 'art-simone', name: 'Art Simone', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Art', seasons: [{seasonId: '301', outcome: 'Runner-up'}]},
-    'karen-from-finance': { id: 'karen-from-finance', name: 'Karen from Finance', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Karen', seasons: [{seasonId: '301', outcome: 'Runner-up'}]},
-    'scarlet-adams': { id: 'scarlet-adams', name: 'Scarlet Adams', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Scarlet', seasons: [{seasonId: '301', outcome: 'Runner-up'}]},
-    'elektra-shock': { id: 'elektra-shock', name: 'Elektra Shock', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Elektra', seasons: [{seasonId: '301', outcome: '5th Place'}]},
-    'maxi-shield': { id: 'maxi-shield', name: 'Maxi Shield', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Maxi', seasons: [{seasonId: '301', outcome: '6th Place'}]},
-    'etcetera-etcetera': { id: 'etcetera-etcetera', name: 'Etcetera Etcetera', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Etcetera', seasons: [{seasonId: '301', outcome: '7th Place'}]},
-    'coco-jumbo': { id: 'coco-jumbo', name: 'Coco Jumbo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Coco+J', seasons: [{seasonId: '301', outcome: '8th Place'}]},
-    'jojo-zaho': { id: 'jojo-zaho', name: 'Jojo Zaho', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jojo', seasons: [{seasonId: '301', outcome: '10th Place'}]},
-  }
-};
+    <script type="text/babel">
+        // --- SVG Icons (Replaces lucide-react library) ---
+        const SearchIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-slate-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>;
+        const ChevronRightIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mx-1"><polyline points="9 18 15 12 9 6"></polyline></svg>;
+        const CrownIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path></svg>;
+        const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" x2="12" y1="19" y2="22"></line></svg>;
+        const ShirtIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M20.38 3.46 16 2a4 4 0 0 0-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>;
+        const ClapperboardIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"></path><path d="m6.2 5.3 3.1 3.9"></path><path d="m12.4 3.6 3.1 4"></path><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path></svg>;
+        const HomeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 mr-1.5"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
+        const BarChart2Icon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3 text-fuchsia-400"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>;
+        const StarIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>;
+        const TvIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mr-3 text-fuchsia-400"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>;
+        const GlobeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6 mr-3"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>;
 
+        const { useState, useEffect, useRef } = React;
 
-// --- DATA FETCHING & STYLING ---
-const fetchData = (collection, id) => {
-    if (!id) return db[collection] || [];
-    const data = db[collection];
-    if (Array.isArray(data)) {
-        return data.find(item => item.id === id);
-    }
-    return data?.[id];
-};
+        // --- DATABASE SIMULATION ---
+        const db = {
+          franchises: [
+            { id: 'rpdr-us', name: 'RuPaul\'s Drag Race', region: 'United States', premiereDate: '2009-02-02', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/4c1d95/f0abfc?text=RPDR+US', seasons: [5, 6, 7, 9, 16] },
+            { id: 'rpdr-as', name: 'RuPaul\'s Drag Race All Stars', region: 'United States', premiereDate: '2012-10-22', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/7b341e/fde68a?text=All+Stars', seasons: [2, 3, 7] },
+            { id: 'switch-dr', name: 'The Switch Drag Race', region: 'Chile', premiereDate: '2015-10-08', hosts: 'Karla Constant', logo: 'https://placehold.co/500x281/155e75/a5f3fc?text=The+Switch', seasons: [] },
+            { id: 'dr-thailand', name: 'Drag Race Thailand', region: 'Thailand', premiereDate: '2018-02-15', hosts: 'Art Arya, Pangina Heals', logo: 'https://placehold.co/500x281/701a75/f5d0fe?text=Thailand', seasons: [] },
+            { id: 'rpdr-uk', name: 'RuPaul\'s Drag Race UK', region: 'United Kingdom', premiereDate: '2019-10-03', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/1e3a8a/f0abfc?text=RPDR+UK', seasons: [101, 102] },
+            { id: 'canada-dr', name: 'Canada\'s Drag Race', region: 'Canada', premiereDate: '2020-07-02', hosts: 'Brooke Lynn Hytes', logo: 'https://placehold.co/500x281/6d28d9/f0abfc?text=Canada', seasons: [201] },
+            { id: 'dr-holland', name: 'Drag Race Holland', region: 'Netherlands', premiereDate: '2020-09-18', hosts: 'Fred van Leer', logo: 'https://placehold.co/500x281/c2410c/ffedd5?text=Holland', seasons: [] },
+            { id: 'drag-race-du', name: 'Drag Race Down Under', region: 'Australia & NZ', premiereDate: '2021-05-01', hosts: 'RuPaul, Michelle Visage', logo: 'https://placehold.co/500x281/0c4a6e/67e8f9?text=Down+Under', seasons: [301] },
+            { id: 'dr-espana', name: 'Drag Race España', region: 'Spain', premiereDate: '2021-05-30', hosts: 'Supremme de Luxe', logo: 'https://placehold.co/500x281/b91c1c/fecaca?text=España', seasons: [] },
+            { id: 'dr-italia', name: 'Drag Race Italia', region: 'Italy', premiereDate: '2021-11-18', hosts: 'Priscilla', logo: 'https://placehold.co/500x281/166534/bbf7d0?text=Italia', seasons: [] },
+            { id: 'dr-france', name: 'Drag Race France', region: 'France', premiereDate: '2022-06-25', hosts: 'Nicky Doll', logo: 'https://placehold.co/500x281/1e3a8a/bfdbfe?text=France', seasons: [] },
+            { id: 'dr-philippines', name: 'Drag Race Philippines', region: 'Philippines', premiereDate: '2022-08-17', hosts: 'Paolo Ballesteros', logo: 'https://placehold.co/500x281/f59e0b/fef3c7?text=Philippines', seasons: [] },
+            { id: 'uk-vs-world', name: 'UK vs. The World', region: 'United Kingdom', premiereDate: '2022-02-01', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/0c0a09/e7e5e4?text=UK+vs+TW', seasons: [] },
+            { id: 'canada-vs-world', name: 'Canada vs. The World', region: 'Canada', premiereDate: '2022-11-18', hosts: 'Brooke Lynn Hytes', logo: 'https://placehold.co/500x281/4a044e/fce7f3?text=CAN+vs+TW', seasons: [] },
+            { id: 'dr-belgique', name: 'Drag Race Belgique', region: 'Belgium', premiereDate: '2023-02-16', hosts: 'Rita Baga', logo: 'https://placehold.co/500x281/ca8a04/fefce8?text=Belgique', seasons: [] },
+            { id: 'dr-sverige', name: 'Drag Race Sverige', region: 'Sweden', premiereDate: '2023-03-04', hosts: 'Robert Fux', logo: 'https://placehold.co/500x281/047857/a7f3d0?text=Sverige', seasons: [] },
+            { id: 'dr-mexico', name: 'Drag Race México', region: 'Mexico', premiereDate: '2023-06-22', hosts: 'Lolita Banana, Valentina, Taiga Brava', logo: 'https://placehold.co/500x281/be123c/fecdd3?text=México', seasons: [] },
+            { id: 'dr-brasil', name: 'Drag Race Brasil', region: 'Brazil', premiereDate: '2023-08-30', hosts: 'Grag Queen', logo: 'https://placehold.co/500x281/15803d/dcfce7?text=Brasil', seasons: [] },
+            { id: 'dr-germany', name: 'Drag Race Germany', region: 'Germany', premiereDate: '2023-09-05', hosts: 'Barbie Breakout, Gianni Jovanovic', logo: 'https://placehold.co/500x281/172554/dbeafe?text=Germany', seasons: [] },
+            { id: 'global-as', name: 'Global All Stars', region: 'Global', premiereDate: '2024-08-16', hosts: 'RuPaul', logo: 'https://placehold.co/500x281/fbbf24/171717?text=Global+AS', seasons: [] },
+          ],
+          seasons: {
+            // US Seasons
+            '16': { id: '16', franchiseId: 'rpdr-us', seasonNumber: '16', year: 2024, poster: 'https://placehold.co/400x600/0284c7/ffffff?text=Season+16', winner: 'Nymphia Wind', runnersUp: ['Plane Jane', 'Sapphira Cristál'], missCongeniality: 'Sapphira Cristál & Xunami Muse', contestants: [], trackRecord: [] },
+            '9': {
+              id: '9', franchiseId: 'rpdr-us', seasonNumber: '9', year: 2017,
+              poster: 'https://placehold.co/400x600/a21caf/ffffff?text=Season+9',
+              winner: 'Sasha Velour', runnersUp: ['Peppermint', 'Shea Couleé', 'Trinity the Tuck'], missCongeniality: 'Valentina',
+              contestants: ['sasha-velour', 'peppermint', 'shea-coulee', 'trinity-the-tuck', 'alexis-michelle', 'nina-bonina-brown', 'valentina', 'farrah-moan', 'aja', 'cynthia-lee-fontaine', 'eureka', 'charlie-hides', 'kimora-blac', 'jaymes-mansfield'],
+              trackRecord: [
+                { queen: 'Sasha Velour', placements: ['SAFE', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'SAFE', 'Winner'] },
+                { queen: 'Peppermint', placements: ['SAFE', 'SAFE', 'SAFE', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'Runner-up'] },
+                { queen: 'Shea Couleé', placements: ['SAFE', 'SAFE', 'SAFE', 'WIN', 'WIN', 'SAFE', 'SAFE', 'HIGH', 'WIN', 'BTM2', 'WIN', 'SAFE', 'ELIM'] },
+                { queen: 'Trinity the Tuck', placements: ['SAFE', 'SAFE', 'WIN', 'BTM2', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'LOW', 'WIN', 'SAFE', 'SAFE', 'ELIM'] },
+                { queen: 'Alexis Michelle', placements: ['HIGH', 'SAFE', 'SAFE', 'HIGH', 'HIGH', 'WIN', 'HIGH', 'BTM2', 'SAFE', 'LOW', 'ELIM', '', ''] },
+                { queen: 'Nina Bo\'nina Brown', placements: ['WIN', 'HIGH', 'LOW', 'SAFE', 'SAFE', 'SAFE', 'BTM2', 'LOW', 'BTM2', 'ELIM', '', '', ''] },
+                { queen: 'Valentina', placements: ['SAFE', 'WIN', 'HIGH', 'SAFE', 'SAFE', 'SAFE', 'SAFE', 'LOW', 'ELIM', '', '', '', ''] },
+                { queen: 'Farrah Moan', placements: ['SAFE', 'SAFE', 'BTM2', 'SAFE', 'BTM2', 'SAFE', 'LOW', 'ELIM', '', '', '', '', ''] },
+                { queen: 'Aja', placements: ['LOW', 'SAFE', 'BTM2', 'SAFE', 'SAFE', 'LOW', 'ELIM', '', '', '', '', '', ''] },
+                { queen: 'Cynthia Lee Fontaine', placements: ['', 'IN', 'SAFE', 'SAFE', 'BTM2', 'ELIM', '', '', '', '', '', '', ''] },
+                { queen: 'Eureka', placements: ['SAFE', 'HIGH', 'SAFE', 'SAFE', 'WDR', '', '', '', '', '', '', '', ''] },
+                { queen: 'Charlie Hides', placements: ['SAFE', 'SAFE', 'LOW', 'ELIM', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Kimora Blac', placements: ['SAFE', 'BTM2', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Jaymes Mansfield', placements: ['BTM2', 'ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+              ]
+            },
+            '7': {
+                id: '7', franchiseId: 'rpdr-us', seasonNumber: '7', year: 2015,
+                poster: 'https://placehold.co/400x600/be185d/ffffff?text=Season+7',
+                winner: 'Violet Chachki', runnersUp: ['Ginger Minj', 'Pearl'], missCongeniality: 'Katya',
+                contestants: ['violet-chachki', 'ginger-minj', 'pearl', 'kennedy-davenport', 'katya', 'trixie-mattel', 'miss-fame', 'jaidynn-diore-fierce', 'max', 'kandy-ho', 'mrs-kasha-davis', 'jasmine-masters', 'sasha-belle', 'tempest-dujour'],
+                trackRecord: [
+                    { queen: 'Violet Chachki', placements: ['WIN', 'SAFE', 'SAFE', 'LOW', 'SAFE', 'WIN', 'LOW', 'WIN', 'HIGH', 'SAFE', 'SAFE', 'Winner'] },
+                    { queen: 'Ginger Minj', placements: ['WIN', 'WIN', 'SAFE', 'BTM2', 'SAFE', 'SAFE', 'HIGH', 'SAFE', 'WIN', 'SAFE', 'BTM2', 'Runner-up'] },
+                    { queen: 'Pearl', placements: ['BTM2', 'WIN', 'SAFE', 'SAFE', 'HIGH', 'SAFE', 'SAFE', 'BTM2', 'LOW', 'WIN', 'SAFE', 'Runner-up'] },
+                    { queen: 'Kennedy Davenport', placements: ['SAFE', 'BTM2', 'WIN', 'SAFE', 'WIN', 'SAFE', 'WIN', 'LOW', 'BTM2', 'ELIM', '', ''] },
+                    { queen: 'Katya', placements: ['HIGH', 'LOW', 'HIGH', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'HIGH', 'BTM2', 'ELIM', '', ''] },
+                    { queen: 'Trixie Mattel', placements: ['SAFE', 'SAFE', 'LOW', 'ELIM', 'IN', 'LOW', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Miss Fame', placements: ['SAFE', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'LOW', 'SAFE', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Jaidynn Diore Fierce', placements: ['SAFE', 'HIGH', 'SAFE', 'HIGH', 'BTM2', 'SAFE', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Max', placements: ['HIGH', 'SAFE', 'WIN', 'WIN', 'LOW', 'ELIM', '', '', '', '', '', ''] },
+                    { queen: 'Kandy Ho', placements: ['BTM2', 'SAFE', 'BTM2', 'BTM2', 'ELIM', '', '', '', '', '', '', ''] },
+                    { queen: 'Mrs. Kasha Davis', placements: ['SAFE', 'HIGH', 'ELIM', '', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Jasmine Masters', placements: ['LOW', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Sasha Belle', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Tempest DuJour', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] }
+                ]
+            },
+            '6': {
+              id: '6', franchiseId: 'rpdr-us', seasonNumber: '6', year: 2014,
+              poster: 'https://placehold.co/400x600/0369a1/ffffff?text=Season+6',
+              winner: 'Bianca Del Rio', runnersUp: ['Adore Delano', 'Courtney Act'], missCongeniality: 'BenDeLaCreme',
+              contestants: ['bianca-del-rio', 'adore-delano', 'courtney-act', 'darienne-lake', 'bendelacreme', 'joslyn-fox', 'trinity-k-bonet', 'laganja-estranja', 'milk', 'gia-gunn', 'april-carrion', 'vivacious', 'magnolia-crawford', 'kelly-mantle'],
+              trackRecord: [
+                { queen: 'Bianca Del Rio', placements: ['SAFE', 'WIN', 'HIGH', 'HIGH', 'SAFE', 'WIN', 'SAFE', 'WIN', 'SAFE', 'SAFE', 'SAFE', 'Winner'] },
+                { queen: 'Adore Delano', placements: ['SAFE', 'BTM2', 'WIN', 'SAFE', 'WIN', 'LOW', 'BTM2', 'SAFE', 'WIN', 'HIGH', 'SAFE', 'Runner-up'] },
+                { queen: 'Courtney Act', placements: ['SAFE', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'HIGH', 'HIGH', 'BTM2', 'LOW', 'WIN', 'SAFE', 'Runner-up'] },
+                { queen: 'Darienne Lake', placements: ['WIN', 'SAFE', 'SAFE', 'LOW', 'SAFE', 'BTM2', 'WIN', 'LOW', 'BTM2', 'BTM2', 'ELIM', ''] },
+                { queen: 'BenDeLaCreme', placements: ['WIN', 'WIN', 'SAFE', 'SAFE', 'BTM2', 'SAFE', 'HIGH', 'ELIM', '', '', '', 'Miss C'] },
+                { queen: 'Joslyn Fox', placements: ['SAFE', 'SAFE', 'BTM2', 'SAFE', 'HIGH', 'WIN', 'ELIM', '', '', '', '', ''] },
+                { queen: 'Trinity K. Bonet', placements: ['BTM2', 'SAFE', 'WIN', 'WIN', 'ELIM', '', '', '', '', '', '', ''] },
+                { queen: 'Laganja Estranja', placements: ['HIGH', 'WIN', 'LOW', 'ELIM', '', '', '', '', '', '', '', ''] },
+                { queen: 'Milk', placements: ['HIGH', 'LOW', 'ELIM', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Gia Gunn', placements: ['LOW', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'April Carrión', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Vivacious', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Magnolia Crawford', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Kelly Mantle', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] }
+              ]
+            },
+            '5': {
+              id: '5', franchiseId: 'rpdr-us', seasonNumber: '5', year: 2013,
+              poster: 'https://placehold.co/400x600/701a75/ffffff?text=Season+5',
+              winner: 'Jinkx Monsoon', runnersUp: ['Alaska', 'Roxxxy Andrews'], missCongeniality: 'Ivy Winters',
+              contestants: ['jinkx-monsoon', 'alaska', 'roxxxy-andrews', 'detox', 'coco-montrese', 'alyssa-edwards', 'ivy-winters', 'jade-jolie', 'lineysha-sparx', 'honey-mahogany', 'vivienne-pinay', 'monica-beverly-hillz', 'serena-chacha', 'penny-tration'],
+              trackRecord: [
+                { queen: 'Jinkx Monsoon', placements: ['HIGH', 'SAFE', 'SAFE', 'WIN', 'SAFE', 'WIN', 'LOW', 'HIGH', 'WIN', 'BTM2', 'SAFE', 'Winner'] },
+                { queen: 'Alaska', placements: ['SAFE', 'BTM2', 'HIGH', 'LOW', 'WIN', 'HIGH', 'BTM2', 'WIN', 'LOW', 'HIGH', 'SAFE', 'Runner-up'] },
+                { queen: 'Roxxxy Andrews', placements: ['WIN', 'SAFE', 'WIN', 'SAFE', 'HIGH', 'LOW', 'WIN', 'BTM2', 'HIGH', 'WIN', 'BTM2', 'Runner-up'] },
+                { queen: 'Detox', placements: ['SAFE', 'SAFE', 'LOW', 'WIN', 'BTM2', 'SAFE', 'HIGH', 'SAFE', 'BTM2', 'ELIM', '', ''] },
+                { queen: 'Coco Montrese', placements: ['BTM2', 'LOW', 'SAFE', 'HIGH', 'SAFE', 'BTM2', 'BTM2', 'ELIM', '', '', '', ''] },
+                { queen: 'Alyssa Edwards', placements: ['LOW', 'HIGH', 'BTM2', 'SAFE', 'WIN', 'ELIM', '', '', '', '', '', ''] },
+                { queen: 'Ivy Winters', placements: ['SAFE', 'WIN', 'HIGH', 'SAFE', 'ELIM', '', '', '', '', '', '', 'Miss C'] },
+                { queen: 'Jade Jolie', placements: ['HIGH', 'SAFE', 'ELIM', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Lineysha Sparx', placements: ['WIN', 'HIGH', 'ELIM', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Honey Mahogany', placements: ['LOW', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Vivienne Pinay', placements: ['SAFE', 'ELIM', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Monica Beverly Hillz', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Serena ChaCha', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+                { queen: 'Penny Tration', placements: ['ELIM', '', '', '', '', '', '', '', '', '', '', ''] },
+              ]
+            },
+            // All Stars
+            '7': { id: '7', franchiseId: 'rpdr-as', seasonNumber: 'All Stars 7', year: 2022, poster: 'https://placehold.co/400x600/ca8a04/000000?text=All+Winners', winner: 'Jinkx Monsoon', runnersUp: ['Monét X Change'], contestants: ['jinkx-monsoon', 'monet-x-change', 'shea-coulee', 'trinity-the-tuck', 'raja', 'the-vivienne', 'yvie-oddly', 'jaida-essence-hall'], trackRecord: [] },
+            '2': {
+              id: '2', franchiseId: 'rpdr-as', seasonNumber: 'All Stars 2', year: 2016,
+              poster: 'https://placehold.co/400x600/c2410c/ffffff?text=All+Stars+2',
+              winner: 'Alaska', runnersUp: ['Detox', 'Katya'],
+              contestants: ['alaska', 'detox', 'katya', 'roxxxy-andrews', 'alyssa-edwards', 'tatianna', 'phi-phi-ohara', 'ginger-minj', 'adore-delano', 'coco-montrese'],
+              trackRecord: [
+                { queen: 'Alaska', placements: ['WIN', 'SAFE', 'WIN', 'WIN', 'BTM', 'WIN', 'SAFE', 'Winner'] },
+                { queen: 'Detox', placements: ['SAFE', 'WIN', 'SAFE', 'BTM', 'WIN', 'SAFE', 'WIN', 'Runner-up'] },
+                { queen: 'Katya', placements: ['SAFE', 'WIN', 'BTM', 'SAFE', 'ELIM', 'IN', 'WIN', 'Runner-up'] },
+                { queen: 'Roxxxy Andrews', placements: ['WIN', 'SAFE', 'BTM', 'SAFE', 'BTM', 'BTM', 'BTM', 'ELIM'] },
+                { queen: 'Alyssa Edwards', placements: ['BTM', 'SAFE', 'WIN', 'ELIM', 'IN', 'ELIM', '', ''] },
+                { queen: 'Tatianna', placements: ['HIGH', 'HIGH', 'ELIM', '', 'IN', 'ELIM', '', ''] },
+                { queen: 'Phi Phi O\'Hara', placements: ['LOW', 'BTM', 'WIN', 'LOW', 'ELIM', '', '', ''] },
+                { queen: 'Ginger Minj', placements: ['SAFE', 'LOW', 'ELIM', '', '', '', '', ''] },
+                { queen: 'Adore Delano', placements: ['SAFE', 'WDR', '', '', '', '', '', ''] },
+                { queen: 'Coco Montrese', placements: ['ELIM', '', '', '', '', '', '', ''] },
+              ]
+            },
+            '3': {
+                id: '3', franchiseId: 'rpdr-as', seasonNumber: 'All Stars 3', year: 2018,
+                poster: 'https://placehold.co/400x600/f59e0b/000000?text=All+Stars+3',
+                winner: 'Trixie Mattel', runnersUp: ['Kennedy Davenport'],
+                contestants: ['trixie-mattel', 'kennedy-davenport', 'shangela', 'bebe-zahara-benet', 'aja', 'bendelacreme', 'chi-chi-devayne', 'milk', 'thorgy-thor', 'morgan-mcmichaels'],
+                trackRecord: [
+                    { queen: 'Trixie Mattel', placements: ['SAFE', 'SAFE', 'SAFE', 'BTM', 'TOP2', 'BTM', 'WIN', 'Winner'] },
+                    { queen: 'Kennedy Davenport', placements: ['HIGH', 'TOP2', 'SAFE', 'WIN', 'LOW', 'SAFE', 'TOP2', 'Runner-up'] },
+                    { queen: 'Shangela', placements: ['HIGH', 'WIN', 'LOW', 'SAFE', 'TOP2', 'WIN', 'BTM', 'ELIM'] },
+                    { queen: 'BeBe Zahara Benet', placements: ['WIN', 'SAFE', 'HIGH', 'HIGH', 'TOP2', 'WIN', 'SAFE', 'ELIM'] },
+                    { queen: 'Aja', placements: ['WIN', 'HIGH', 'HIGH', 'LOW', 'ELIM', '', '', ''] },
+                    { queen: 'BenDeLaCreme', placements: ['WIN', 'WIN', 'WIN', 'WIN', 'WIN', 'WDR', '', ''] },
+                    { queen: 'Chi Chi DeVayne', placements: ['LOW', 'LOW', 'BTM', 'ELIM', '', '', '', ''] },
+                    { queen: 'Milk', placements: ['BTM', 'BTM', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Thorgy Thor', placements: ['ELIM', '', '', '', '', '', '', ''] },
+                    { queen: 'Morgan McMichaels', placements: ['ELIM', 'IN', 'ELIM', '', '', '', '', ''] }
+                ]
+            },
+            // UK Seasons
+            '101': {
+                id: '101', franchiseId: 'rpdr-uk', seasonNumber: '1', year: 2019,
+                poster: 'https://placehold.co/400x600/1e40af/ffffff?text=UK+S1',
+                winner: 'The Vivienne', runnersUp: ['Divina De Campo'], missCongeniality: 'Scaredy Kat',
+                contestants: ['the-vivienne', 'divina-de-campo', 'baga-chipz', 'cheryl-hole', 'blu-hydrangea', 'crystal', 'sum-ting-wong', 'vinegar-strokes', 'scaredy-kat', 'gothy-kendoll'],
+                trackRecord: [
+                    { queen: 'The Vivienne', placements: ['WIN', 'SAFE', 'WIN', 'HIGH', 'WIN', 'BTM2', 'HIGH', 'Winner'] },
+                    { queen: 'Divina De Campo', placements: ['HIGH', 'HIGH', 'WIN', 'WIN', 'HIGH', 'WIN', 'BTM2', 'Runner-up'] },
+                    { queen: 'Baga Chipz', placements: ['HIGH', 'WIN', 'WIN', 'HIGH', 'LOW', 'SAFE', 'ELIM', ''] },
+                    { queen: 'Cheryl Hole', placements: ['LOW', 'SAFE', 'SAFE', 'BTM2', 'BTM2', 'ELIM', '', ''] },
+                    { queen: 'Blu Hydrangea', placements: ['SAFE', 'WIN', 'LOW', 'BTM2', 'ELIM', '', '', ''] },
+                    { queen: 'Crystal', placements: ['SAFE', 'HIGH', 'SAFE', 'ELIM', '', '', '', ''] },
+                    { queen: 'Sum Ting Wong', placements: ['SAFE', 'BTM2', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Vinegar Strokes', placements: ['BTM2', 'ELIM', '', '', '', '', '', ''] },
+                    { queen: 'Scaredy Kat', placements: ['ELIM', '', '', '', '', '', '', 'Miss C'] },
+                    { queen: 'Gothy Kendoll', placements: ['ELIM', '', '', '', '', '', '', ''] }
+                ]
+            },
+            '102': {
+                id: '102', franchiseId: 'rpdr-uk', seasonNumber: '2', year: 2021,
+                poster: 'https://placehold.co/400x600/500724/ffffff?text=UK+S2',
+                winner: 'Lawrence Chaney', runnersUp: ['Bimini Bon-Boulash', 'Tayce'], missCongeniality: 'Lawrence Chaney',
+                contestants: ['lawrence-chaney', 'bimini-bon-boulash', 'tayce', 'ellie-diamond', 'awhora', 'tia-kofi', 'joe-black', 'veronica-green', 'sister-sister', 'asttina-mandella', 'cherry-valentine', 'ginny-lemon'],
+                trackRecord: [
+                    { queen: 'Lawrence Chaney', placements: ['HIGH', 'WIN', 'WIN', 'SAFE', 'WIN', 'BTM2', 'SAFE', 'SAFE', 'LOW', 'Winner'] },
+                    { queen: 'Bimini Bon-Boulash', placements: ['LOW', 'SAFE', 'BTM2', 'WIN', 'SAFE', 'WIN', 'WIN', 'WIN', 'HIGH', 'Runner-up'] },
+                    { queen: 'Tayce', placements: ['SAFE', 'BTM2', 'SAFE', 'BTM2', 'HIGH', 'BTM2', 'HIGH', 'BTM2', 'WIN', 'Runner-up'] },
+                    { queen: 'Ellie Diamond', placements: ['SAFE', 'HIGH', 'SAFE', 'SAFE', 'HIGH', 'HIGH', 'LOW', 'SAFE', 'ELIM', ''] },
+                    { queen: 'A\'Whora', placements: ['HIGH', 'HIGH', 'HIGH', 'HIGH', 'WIN', 'LOW', 'ELIM', '', '', ''] },
+                    { queen: 'Tia Kofi', placements: ['BTM2', 'LOW', 'LOW', 'LOW', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Joe Black', placements: ['ELIM', 'IN', 'ELIM', '', '', '', '', '', '', ''] },
+                    { queen: 'Veronica Green', placements: ['WIN', 'HIGH', 'HIGH', 'WDR', '', '', '', '', '', ''] },
+                    { queen: 'Sister Sister', placements: ['SAFE', 'SAFE', 'BTM2', 'ELIM', '', '', '', '', '', ''] },
+                    { queen: 'Asttina Mandella', placements: ['WIN', 'ELIM', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Cherry Valentine', placements: ['ELIM', '', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Ginny Lemon', placements: ['SAFE', 'SAFE', 'WDR', '', '', '', '', '', '', ''] },
+                ]
+            },
+            // Canada Season
+            '201': {
+                id: '201', franchiseId: 'canada-dr', seasonNumber: '1', year: 2020,
+                poster: 'https://placehold.co/400x600/7e22ce/ffffff?text=Canada+S1',
+                winner: 'Priyanka', runnersUp: ['Rita Baga', 'Scarlett BoBo'], missCongeniality: 'Ilona Verley',
+                contestants: ['priyanka', 'rita-baga', 'scarlett-bobo', 'jimbo', 'lemon', 'ilona-verley', 'boa', 'kiara', 'tynomi-banks', 'anastarzia-anaquway', 'kyne', 'juice-boxx'],
+                trackRecord: [
+                    { queen: 'Priyanka', placements: ['WIN', 'SAFE', 'BTM2', 'WIN', 'BTM2', 'LOW', 'SAFE', 'BTM2', 'HIGH', 'Winner'] },
+                    { queen: 'Rita Baga', placements: ['WIN', 'HIGH', 'WIN', 'SAFE', 'LOW', 'WIN', 'BTM2', 'HIGH', 'SAFE', 'Runner-up'] },
+                    { queen: 'Scarlett BoBo', placements: ['SAFE', 'SAFE', 'HIGH', 'HIGH', 'HIGH', 'SAFE', 'WIN', 'WIN', 'SAFE', 'Runner-up'] },
+                    { queen: 'Jimbo', placements: ['SAFE', 'WIN', 'SAFE', 'LOW', 'WIN', 'HIGH', 'BTM2', 'ELIM', '', ''] },
+                    { queen: 'Lemon', placements: ['LOW', 'BTM2', 'WIN', 'WIN', 'SAFE', 'BTM2', 'ELIM', '', '', ''] },
+                    { queen: 'Ilona Verley', placements: ['HIGH', 'LOW', 'BTM2', 'SAFE', 'BTM2', 'ELIM', '', '', '', 'Miss C'] },
+                    { queen: 'BOA', placements: ['SAFE', 'SAFE', 'SAFE', 'BTM2', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Kiara', placements: ['BTM2', 'HIGH', 'HIGH', 'ELIM', '', '', '', '', '', ''] },
+                    { queen: 'Tynomi Banks', placements: ['LOW', 'BTM2', 'ELIM', '', '', '', '', '', '', ''] },
+                    { queen: 'Anastarzia Anaquway', placements: ['HIGH', 'ELIM', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Kyne', placements: ['ELIM', '', '', '', '', '', '', '', '', ''] },
+                    { queen: 'Juice Boxx', placements: ['ELIM', '', '', '', '', '', '', '', '', ''] }
+                ]
+            },
+            // Down Under Season
+            '301': {
+                id: '301', franchiseId: 'drag-race-du', seasonNumber: '1', year: 2021,
+                poster: 'https://placehold.co/400x600/065f46/ffffff?text=Down+Under+S1',
+                winner: 'Kita Mean', runnersUp: ['Art Simone', 'Karen from Finance', 'Scarlet Adams'], missCongeniality: 'Anita Wigl\'it',
+                contestants: ['kita-mean', 'art-simone', 'karen-from-finance', 'scarlet-adams', 'elektra-shock', 'maxi-shield', 'etcetera-etcetera', 'coco-jumbo', 'anita-wiglit', 'jojo-zaho'],
+                trackRecord: [
+                    { queen: 'Kita Mean', placements: ['SAFE', 'LOW', 'BTM2', 'SAFE', 'WIN', 'SAFE', 'HIGH', 'Winner'] },
+                    { queen: 'Art Simone', placements: ['BTM2', 'ELIM', 'IN', 'HIGH', 'SAFE', 'BTM2', 'HIGH', 'Runner-up'] },
+                    { queen: 'Karen from Finance', placements: ['WIN', 'SAFE', 'SAFE', 'SAFE', 'LOW', 'HIGH', 'LOW', 'Runner-up'] },
+                    { queen: 'Scarlet Adams', placements: ['HIGH', 'WIN', 'HIGH', 'WIN', 'BTM2', 'LOW', 'WIN', 'Runner-up'] },
+                    { queen: 'Elektra Shock', placements: ['BTM2', 'SAFE', 'SAFE', 'BTM2', 'HIGH', 'WIN', 'ELIM', ''] },
+                    { queen: 'Maxi Shield', placements: ['SAFE', 'SAFE', 'WIN', 'LOW', 'ELIM', '', '', ''] },
+                    { queen: 'Etcetera Etcetera', placements: ['SAFE', 'HIGH', 'LOW', 'ELIM', '', '', '', ''] },
+                    { queen: 'Coco Jumbo', placements: ['LOW', 'BTM2', 'ELIM', '', '', '', '', ''] },
+                    { queen: 'Anita Wigl\'it', placements: ['HIGH', 'WIN', 'ELIM', '', '', '', '', 'Miss C'] },
+                    { queen: 'Jojo Zaho', placements: ['ELIM', '', '', '', '', '', '', ''] }
+                ]
+            }
+          },
+          queens: {
+            // S9 Queens
+            'sasha-velour': { id: 'sasha-velour', name: 'Sasha Velour', realName: 'Alexander Hedges Steinberg', hometown: 'Brooklyn, NY', ageAtFilming: 29, profilePic: 'https://placehold.co/400x400/f0abfc/1e1b4b?text=Sasha+V', banner: 'https://placehold.co/1200x400/a21caf/1e1b4b?text=Sasha', bio: 'A true artist and intellectual, Sasha Velour brought a unique, high-concept approach to drag, culminating in one of the most iconic finale performances in Drag Race history.', seasons: [{seasonId: '9', outcome: 'Winner'}], lipSyncs: [{ song: 'So Emotional', opponent: 'Shea Couleé', outcome: 'Won', season: '9' }, { song: 'It\'s Not Right but It\'s Okay', opponent: 'Peppermint', outcome: 'Won', season: '9' }], career: { media: ['NightGowns', 'Smoke & Mirrors'], literature: ['Velour, The Drag Magazine'] } },
+            'peppermint': { id: 'peppermint', name: 'Peppermint', realName: 'Agnes Moore', hometown: 'New York City, NY', ageAtFilming: 37, profilePic: 'https://placehold.co/400x400/f472b6/1e1b4b?text=Peppermint', banner: 'https://placehold.co/1200x400/db2777/1e1b4b?text=Peppermint', bio: 'The "Lip-Sync Assassin" of her season, Peppermint is a New York City legend and a powerful activist for the trans community.', seasons: [{seasonId: '9', outcome: 'Runner-up'}], lipSyncs: [{ song: 'Music', opponent: 'Cynthia Lee Fontaine', outcome: 'Won', season: '9' }, { song: 'Macho Man', opponent: 'Alexis Michelle', outcome: 'Won', season: '9' }, { song: 'Stronger', opponent: 'Trinity the Tuck', outcome: 'Won', season: '9' }], career: {media: ['Head Over Heels (Broadway)']} },
+            'shea-coulee': { id: 'shea-coulee', name: 'Shea Couleé', realName: 'Jaren Kyei Merrell', hometown: 'Chicago, IL', ageAtFilming: 27, profilePic: 'https://placehold.co/400x400/eab308/1e1b4b?text=Shea', banner: 'https://placehold.co/1200x400/ca8a04/1e1b4b?text=Shea', bio: 'A dominant force in Season 9, Shea Couleé excelled in nearly every challenge, showcasing her incredible talent and fashion.', seasons: [{seasonId: '9', outcome: '3rd/4th Place'}, {seasonId: 'as5', outcome: 'Winner'}, {seasonId: 'as7', outcome: '3rd/4th Place'}], lipSyncs: [], career: {music:['Couleé-D']} },
+            'trinity-the-tuck': { id: 'trinity-the-tuck', name: 'Trinity the Tuck', realName: 'Ryan Taylor', hometown: 'Orlando, FL', ageAtFilming: 31, profilePic: 'https://placehold.co/400x400/38bdf8/1e1b4b?text=Trinity', banner: 'https://placehold.co/1200x400/0ea5e9/1e1b4b?text=Trinity', bio: 'Starting as a pageant queen, Trinity "The Tuck" proved to be a versatile and hilarious competitor, known for her sharp wit and body-ody-ody.', seasons: [{seasonId: '9', outcome: '3rd/4th Place'}, {seasonId: 'as4', outcome: 'Winner'}, {seasonId: 'as7', outcome: '3rd/4th Place'}], lipSyncs: [], career: {} },
+            // S7 Queens
+            'violet-chachki': { id: 'violet-chachki', name: 'Violet Chachki', realName: 'Paul Jason Dardo', hometown: 'Atlanta, GA', ageAtFilming: 22, profilePic: 'https://placehold.co/400x400/be185d/ffffff?text=Violet', banner: 'https://placehold.co/1200x400/9d174d/ffffff?text=Violet', bio: 'A high-fashion look queen and aerialist who stunned the judges with her tiny waist and iconic two-in-one tartan reveal.', seasons: [{seasonId: '7', outcome: 'Winner'}], lipSyncs: [], career: {} },
+            'ginger-minj': { id: 'ginger-minj', name: 'Ginger Minj', realName: 'Joshua Allen Eads', hometown: 'Orlando, FL', ageAtFilming: 29, profilePic: 'https://placehold.co/400x400/f97316/ffffff?text=Ginger', banner: 'https://placehold.co/1200x400/ea580c/ffffff?text=Ginger', bio: 'A self-described "glamour toad," Ginger excelled at comedy and acting challenges with her sharp wit and classic camp sensibility.', seasons: [{seasonId: '7', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '8th Place'}, {seasonId: 'as6', outcome: 'Runner-up'}], lipSyncs: [], career: {} },
+            'pearl': { id: 'pearl', name: 'Pearl', realName: 'Matthew James Lent', hometown: 'Brooklyn, NY', ageAtFilming: 23, profilePic: 'https://placehold.co/400x400/64748b/ffffff?text=Pearl', banner: 'https://placehold.co/1200x400/475569/ffffff?text=Pearl', bio: 'The "flazéda" queen whose sleepy, cool-girl demeanor hid a fierce competitor. Had a famously tense staredown with RuPaul.', seasons: [{seasonId: '7', outcome: 'Runner-up'}], lipSyncs: [], career: {} },
+            'katya': { id: 'katya', name: 'Katya', realName: 'Brian McCook', hometown: 'Boston, MA', ageAtFilming: 32, profilePic: 'https://placehold.co/400x400/dc2626/ffffff?text=Katya', banner: 'https://placehold.co/1200x400/b91c1c/ffffff?text=Katya', bio: 'Your average, run-of-the-mill, Russian, bisexual, transvestite hooker who captured hearts with her bizarre humor and anxiety-ridden charm.', seasons: [{seasonId: '7', outcome: '5th Place', missCongeniality: true}, {seasonId: 'as2', outcome: 'Runner-up'}], lipSyncs: [], career: { media: ['UNHhhh', 'The Trixie & Katya Show', 'I\'m a Celebrity...Get Me Out of Here!'], literature: ['Trixie and Katya\'s Guide to Modern Womanhood'] } },
+            'trixie-mattel': { id: 'trixie-mattel', name: 'Trixie Mattel', realName: 'Brian Michael Firkus', hometown: 'Milwaukee, WI', ageAtFilming: 24, profilePic: 'https://placehold.co/400x400/f472b6/000000?text=Trixie', banner: 'https://placehold.co/1200x400/f9a8d4/000000?text=Trixie', bio: 'A life-in-plastic folk-singing comedy queen, Trixie was eliminated early but returned to become one of the franchise\'s most successful alumnae.', seasons: [{seasonId: '7', outcome: '6th Place'}, {seasonId: 'as3', outcome: 'Winner'}], lipSyncs: [{ song: 'Dreaming', opponent: 'Pearl', outcome: 'Lost', season: '7'}, { song: 'Show Me Love', opponent: 'Ginger Minj', outcome: 'Lost', season: '7'}, { song: 'Wrecking Ball', opponent: 'Kennedy Davenport', outcome: 'Won', season: 'as3' }], career: { music: ['Two Birds', 'One Stone', 'Barbara'], business: ['Trixie Cosmetics', 'Trixie Motel'], media: ['UNHhhh', 'The Bald and the Beautiful', 'Trixie Motel'] } },
+            // S6 Queens
+            'bianca-del-rio': { id: 'bianca-del-rio', name: 'Bianca Del Rio', realName: 'Roy Haylock', hometown: 'New York, NY', ageAtFilming: 37, profilePic: 'https://placehold.co/400x400/0369a1/ffffff?text=Bianca', banner: 'https://placehold.co/1200x400/0891b2/ffffff?text=Bianca', bio: 'An insult comic with a heart of gold, Bianca Del Rio is considered one of the most dominant winners in Drag Race history, never placing in the bottom.', seasons: [{seasonId: '6', outcome: 'Winner'}], lipSyncs: [], career: {media: ['Hurricane Bianca'], tours: ['It\'s Jester Joke', 'Blame It On Bianca Del Rio']} },
+            'adore-delano': { id: 'adore-delano', name: 'Adore Delano', realName: 'Danielle Noriega', hometown: 'Azusa, CA', ageAtFilming: 23, profilePic: 'https://placehold.co/400x400/9333ea/ffffff?text=Adore', banner: 'https://placehold.co/1200x400/a855f7/ffffff?text=Adore', bio: 'A former American Idol contestant, Adore brought a punk-rock, grunge aesthetic and a "party" personality that made her a massive fan favorite.', seasons: [{seasonId: '6', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '9th Place (WDR)'}], lipSyncs: [], career: {music: ['Till Death Do Us Party', 'After Party']} },
+            'courtney-act': { id: 'courtney-act', name: 'Courtney Act', realName: 'Shane Jenek', hometown: 'Sydney, Australia', ageAtFilming: 31, profilePic: 'https://placehold.co/400x400/db2777/ffffff?text=Courtney', banner: 'https://placehold.co/1200x400/e11d48/ffffff?text=Courtney', bio: 'Polished and professional, this Australian Idol alum showcased incredible vocals and flawless runway presentations.', seasons: [{seasonId: '6', outcome: 'Runner-up'}], lipSyncs: [], career: {media: ['Celebrity Big Brother UK (Winner)', 'Dancing with the Stars (Australia)']} },
+            'bendelacreme': { id: 'bendelacreme', name: 'BenDeLaCreme', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=DeLa', bio: 'Terminally delightful, BenDeLaCreme is a powerhouse of comedy and performance, holding the record for the most challenge wins in a single season.', seasons: [{seasonId: '6', outcome: '5th Place', missCongeniality: true}, {seasonId: 'as3', outcome: '6th Place (WDR)'}], lipSyncs:[] },
+            // S5 Queens
+            'jinkx-monsoon': { id: 'jinkx-monsoon', name: 'Jinkx Monsoon', realName: 'Hera Hoffer', hometown: 'Seattle, WA', ageAtFilming: 24, profilePic: 'https://placehold.co/400x400/701a75/ffffff?text=Jinkx', banner: 'https://placehold.co/1200x400/86198f/ffffff?text=Jinkx', bio: 'The "internationally tolerated" cabaret star and narcoleptic, Jinkx proved that talent and character could triumph over fashion. "Water off a duck\'s back."', seasons: [{seasonId: '5', outcome: 'Winner'}, {seasonId: 'as7', outcome: 'Winner'}], lipSyncs: [], career: {media: ['Chicago (Broadway)'], music: ['The Inevitable Album', 'The Ginger Snapped']} },
+            'alaska': { id: 'alaska', name: 'Alaska', realName: 'Justin Andrew Honard', hometown: 'Los Angeles, CA', ageAtFilming: 27, profilePic: 'https://placehold.co/400x400/0284c7/ffffff?text=Alaska', banner: 'https://placehold.co/1200x400/0369a1/ffffff?text=Alaska', bio: 'Hiiiiii! The snake-like queen from the planet Glamtron, Alaska\'s unique brand of comedy and extraterrestrial glamour made her a standout and an All Stars legend.', seasons: [{seasonId: '5', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: 'Winner'}], lipSyncs: [{ song: 'Read U Wrote U', opponent: 'All', outcome: 'Won', season:'as2' }], career: { music: ['Anus', 'Poundcake', 'Vagina'], media: ['Race Chaser (Podcast)'] } },
+            'roxxxy-andrews': { id: 'roxxxy-andrews', name: 'Roxxxy Andrews', realName: 'Michael Feliciano', hometown: 'Orlando, FL', ageAtFilming: 28, profilePic: 'https://placehold.co/400x400/c2410c/ffffff?text=Roxxxy', banner: 'https://placehold.co/1200x400/ea580c/ffffff?text=Roxxxy', bio: 'Known for her flawless runway looks and the iconic "Whip My Hair" wig reveal, Roxxxy is here to make it clear.', seasons: [{seasonId: '5', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '4th Place'}], lipSyncs: [], career: {} },
+            // UK Queens
+            'the-vivienne': { id: 'the-vivienne', name: 'The Vivienne', hometown: 'Liverpool, England', ageAtFilming: 27, profilePic: 'https://placehold.co/400x400/1e40af/ffffff?text=The+Vivienne', banner: 'https://placehold.co/1200x400/1d4ed8/ffffff?text=The+Vivienne', bio: 'The first-ever winner of RuPaul\'s Drag Race UK, known for her killer impersonations, especially Donald Trump.', seasons: [{seasonId: '101', outcome: 'Winner'}, {seasonId: 'as7', outcome: '3rd/4th Place'}], lipSyncs: [], career: {} },
+            'lawrence-chaney': { id: 'lawrence-chaney', name: 'Lawrence Chaney', hometown: 'Glasgow, Scotland', ageAtFilming: 23, profilePic: 'https://placehold.co/400x400/500724/ffffff?text=Lawrence', banner: 'https://placehold.co/1200x400/831843/ffffff?text=Lawrence', bio: 'This Scottish legend is "purple, plastic, and fantastic," and won her season with humor and heart.', seasons: [{seasonId: '102', outcome: 'Winner', missCongeniality: true}], lipSyncs: [], career: {} },
+            // Canada Queens
+            'priyanka': { id: 'priyanka', name: 'Priyanka', realName: 'Mark Suknanan', hometown: 'Toronto, Ontario', ageAtFilming: 28, profilePic: 'https://placehold.co/400x400/7e22ce/ffffff?text=Priyanka', banner: 'https://placehold.co/1200x400/9333ea/ffffff?text=Priyanka', bio: '"What\'s her name?!" Canada\'s first-ever drag superstar, Priyanka brought charisma and star power from her past as a children\'s TV host.', seasons: [{seasonId: '201', outcome: 'Winner'}], lipSyncs: [], career: {media: ['Canada\'s Drag Race (Guest Judge)']} },
+            'ilona-verley': { id: 'ilona-verley', name: 'Ilona Verley', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ilona', seasons: [{seasonId: '201', outcome: '6th Place', missCongeniality: true}]},
+            'boa': { id: 'boa', name: 'BOA', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=BOA', seasons: [{seasonId: '201', outcome: '7th Place'}]},
+            'tynomi-banks': { id: 'tynomi-banks', name: 'Tynomi Banks', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tynomi', seasons: [{seasonId: '201', outcome: '9th Place'}]},
+            // Down Under Queens
+            'kita-mean': { id: 'kita-mean', name: 'Kita Mean', hometown: 'Auckland, New Zealand', ageAtFilming: 34, profilePic: 'https://placehold.co/400x400/065f46/ffffff?text=Kita', banner: 'https://placehold.co/1200x400/047857/ffffff?text=Kita', bio: 'The hilarious and heartwarming winner of the inaugural season of Drag Race Down Under, co-owner of Caluzzi Cabaret in Auckland.', seasons: [{seasonId: '301', outcome: 'Winner'}], lipSyncs: [], career: {media: ['House of Drag']} },
+            'anita-wiglit': { id: 'anita-wiglit', name: 'Anita Wigl\'it', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Anita', bio: 'A queen of comedy from New Zealand, known for her quick wit and joyful presence.', seasons: [{seasonId: '301', outcome: '9th Place', missCongeniality: true}], lipSyncs: []},
+            // --- Auto-generated placeholders for other queens ---
+            'alexis-michelle': { id: 'alexis-michelle', name: 'Alexis Michelle', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Alexis', seasons: [{seasonId: '9', outcome: '5th Place'}]},
+            'nina-bonina-brown': { id: 'nina-bonina-brown', name: 'Nina Bo\'nina Brown', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Nina', seasons: [{seasonId: '9', outcome: '6th Place'}]},
+            'valentina': { id: 'valentina', name: 'Valentina', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Valentina', seasons: [{seasonId: '9', outcome: '7th Place', missCongeniality: true}, {seasonId: 'as4', outcome: '7th Place'}]},
+            'farrah-moan': { id: 'farrah-moan', name: 'Farrah Moan', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Farrah', seasons: [{seasonId: '9', outcome: '8th Place'}]},
+            'aja': { id: 'aja', name: 'Aja', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Aja', seasons: [{seasonId: '9', outcome: '9th Place'}]},
+            'cynthia-lee-fontaine': { id: 'cynthia-lee-fontaine', name: 'Cynthia Lee Fontaine', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Cucu', seasons: [{seasonId: '8', outcome: '10th Place', missCongeniality: true}, {seasonId: '9', outcome: '10th Place'}]},
+            'eureka': { id: 'eureka', name: 'Eureka', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Eureka', seasons: [{seasonId: '9', outcome: '11th Place (WDR)'}]},
+            'charlie-hides': { id: 'charlie-hides', name: 'Charlie Hides', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Charlie', seasons: [{seasonId: '9', outcome: '12th Place'}]},
+            'kimora-blac': { id: 'kimora-blac', name: 'Kimora Blac', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kimora', seasons: [{seasonId: '9', outcome: '13th Place'}]},
+            'jaymes-mansfield': { id: 'jaymes-mansfield', name: 'Jaymes Mansfield', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jaymes', seasons: [{seasonId: '9', outcome: '14th Place'}]},
+            'kennedy-davenport': { id: 'kennedy-davenport', name: 'Kennedy Davenport', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kennedy' , seasons: [{seasonId: '7', outcome: '4th Place'}, {seasonId: 'as3', outcome: 'Runner-up'}]},
+            'miss-fame': { id: 'miss-fame', name: 'Miss Fame', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Fame', seasons: [{seasonId: '7', outcome: '7th Place'}]},
+            'jaidynn-diore-fierce': { id: 'jaidynn-diore-fierce', name: 'Jaidynn Diore Fierce', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jaidynn' , seasons: [{seasonId: '7', outcome: '8th Place'}]},
+            'max': { id: 'max', name: 'Max', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Max', seasons: [{seasonId: '7', outcome: '9th Place'}]},
+            'kandy-ho': { id: 'kandy-ho', name: 'Kandy Ho', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kandy', seasons: [{seasonId: '7', outcome: '10th Place'}]},
+            'mrs-kasha-davis': { id: 'mrs-kasha-davis', name: 'Mrs. Kasha Davis', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=MKD', seasons: [{seasonId: '7', outcome: '11th Place'}]},
+            'jasmine-masters': { id: 'jasmine-masters', name: 'Jasmine Masters', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jasmine', seasons: [{seasonId: '7', outcome: '12th Place'}]},
+            'sasha-belle': { id: 'sasha-belle', name: 'Sasha Belle', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Sasha+B', seasons: [{seasonId: '7', outcome: '13th Place'}]},
+            'tempest-dujour': { id: 'tempest-dujour', name: 'Tempest DuJour', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tempest', seasons: [{seasonId: '7', outcome: '14th Place'}]},
+            'darienne-lake': { id: 'darienne-lake', name: 'Darienne Lake', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Darienne' , seasons: [{seasonId: '6', outcome: '4th Place'}]},
+            'joslyn-fox': { id: 'joslyn-fox', name: 'Joslyn Fox', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Joslyn', seasons: [{seasonId: '6', outcome: '6th Place'}]},
+            'trinity-k-bonet': { id: 'trinity-k-bonet', name: 'Trinity K. Bonet', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=TKB', seasons: [{seasonId: '6', outcome: '7th Place'}]},
+            'laganja-estranja': { id: 'laganja-estranja', name: 'Laganja Estranja', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Laganja', seasons: [{seasonId: '6', outcome: '8th Place'}]},
+            'milk': { id: 'milk', name: 'Milk', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Milk', seasons: [{seasonId: '6', outcome: '9th Place'}]},
+            'gia-gunn': { id: 'gia-gunn', name: 'Gia Gunn', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Gia', seasons: [{seasonId: '6', outcome: '10th Place'}]},
+            'april-carrion': { id: 'april-carrion', name: 'April Carrión', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=April', seasons: [{seasonId: '6', outcome: '11th Place'}]},
+            'vivacious': { id: 'vivacious', name: 'Vivacious', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Vivacious', seasons: [{seasonId: '6', outcome: '12th Place'}]},
+            'magnolia-crawford': { id: 'magnolia-crawford', name: 'Magnolia Crawford', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Magnolia', seasons: [{seasonId: '6', outcome: '13th Place'}]},
+            'kelly-mantle': { id: 'kelly-mantle', name: 'Kelly Mantle', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kelly', seasons: [{seasonId: '6', outcome: '14th Place'}]},
+            'detox': { id: 'detox', name: 'Detox', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Detox', seasons: [{seasonId: '5', outcome: '4th Place'}, {seasonId: 'as2', outcome: 'Runner-up'}]},
+            'coco-montrese': { id: 'coco-montrese', name: 'Coco Montrese', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Coco', seasons: [{seasonId: '5', outcome: '5th Place'}]},
+            'alyssa-edwards': { id: 'alyssa-edwards', name: 'Alyssa Edwards', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Alyssa', seasons: [{seasonId: '5', outcome: '6th Place'}]},
+            'ivy-winters': { id: 'ivy-winters', name: 'Ivy Winters', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ivy', seasons: [{seasonId: '5', outcome: '7th Place', missCongeniality: true}]},
+            'jade-jolie': { id: 'jade-jolie', name: 'Jade Jolie', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jade', seasons: [{seasonId: '5', outcome: '8th Place'}]},
+            'lineysha-sparx': { id: 'lineysha-sparx', name: 'Lineysha Sparx', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Lineysha', seasons: [{seasonId: '5', outcome: '9th Place'}]},
+            'honey-mahogany': { id: 'honey-mahogany', name: 'Honey Mahogany', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Honey', seasons: [{seasonId: '5', outcome: '10th Place'}]},
+            'vivienne-pinay': { id: 'vivienne-pinay', name: 'Vivienne Pinay', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Vivienne', seasons: [{seasonId: '5', outcome: '11th Place'}]},
+            'monica-beverly-hillz': { id: 'monica-beverly-hillz', name: 'Monica Beverly Hillz', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Monica', seasons: [{seasonId: '5', outcome: '12th Place'}]},
+            'serena-chacha': { id: 'serena-chacha', name: 'Serena ChaCha', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Serena', seasons: [{seasonId: '5', outcome: '13th Place'}]},
+            'penny-tration': { id: 'penny-tration', name: 'Penny Tration', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Penny', seasons: [{seasonId: '5', outcome: '14th Place'}]},
+            'tatianna': { id: 'tatianna', name: 'Tatianna', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tatianna', seasons: [{seasonId: '2', outcome: '4th Place'}, {seasonId: 'as2', outcome: '6th Place'}]},
+            'phi-phi-ohara': { id: 'phi-phi-ohara', name: 'Phi Phi O\'Hara', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Phi+Phi', seasons: [{seasonId: '4', outcome: 'Runner-up'}, {seasonId: 'as2', outcome: '7th Place'}]},
+            'shangela': { id: 'shangela', name: 'Shangela', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Shangela', seasons: [{seasonId: '2', outcome: '12th Place'}, {seasonId: '3', outcome: '6th Place'}, {seasonId: 'as3', outcome: '3rd/4th Place'}]},
+            'bebe-zahara-benet': { id: 'bebe-zahara-benet', name: 'BeBe Zahara Benet', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=BeBe', seasons: [{seasonId: '1', outcome: 'Winner'}, {seasonId: 'as3', outcome: '3rd/4th Place'}]},
+            'chi-chi-devayne': { id: 'chi-chi-devayne', name: 'Chi Chi DeVayne', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Chi+Chi', seasons: [{seasonId: '8', outcome: '4th Place'}, {seasonId: 'as3', outcome: '7th Place'}]},
+            'thorgy-thor': { id: 'thorgy-thor', name: 'Thorgy Thor', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Thorgy', seasons: [{seasonId: '8', outcome: '6th Place'}, {seasonId: 'as3', outcome: '9th Place'}]},
+            'morgan-mcmichaels': { id: 'morgan-mcmichaels', name: 'Morgan McMichaels', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Morgan', seasons: [{seasonId: '2', outcome: '8th Place'}, {seasonId: 'as3', outcome: '10th Place'}]},
+            'divina-de-campo': { id: 'divina-de-campo', name: 'Divina De Campo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Divina', seasons: [{seasonId: '101', outcome: 'Runner-up'}]},
+            'baga-chipz': { id: 'baga-chipz', name: 'Baga Chipz', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Baga', seasons: [{seasonId: '101', outcome: '3rd Place'}]},
+            'cheryl-hole': { id: 'cheryl-hole', name: 'Cheryl Hole', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Cheryl', seasons: [{seasonId: '101', outcome: '4th Place'}]},
+            'blu-hydrangea': { id: 'blu-hydrangea', name: 'Blu Hydrangea', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Blu', seasons: [{seasonId: '101', outcome: '5th Place'}]},
+            'crystal': { id: 'crystal', name: 'Crystal', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Crystal', seasons: [{seasonId: '101', outcome: '6th Place'}]},
+            'sum-ting-wong': { id: 'sum-ting-wong', name: 'Sum Ting Wong', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Sum+Ting', seasons: [{seasonId: '101', outcome: '7th Place'}]},
+            'vinegar-strokes': { id: 'vinegar-strokes', name: 'Vinegar Strokes', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Vinegar', seasons: [{seasonId: '101', outcome: '8th Place'}]},
+            'scaredy-kat': { id: 'scaredy-kat', name: 'Scaredy Kat', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Scaredy', seasons: [{seasonId: '101', outcome: '9th Place', missCongeniality: true}]},
+            'gothy-kendoll': { id: 'gothy-kendoll', name: 'Gothy Kendoll', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Gothy', seasons: [{seasonId: '101', outcome: '10th Place'}]},
+            'bimini-bon-boulash': { id: 'bimini-bon-boulash', name: 'Bimini Bon-Boulash', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Bimini', seasons: [{seasonId: '102', outcome: 'Runner-up'}]},
+            'tayce': { id: 'tayce', name: 'Tayce', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tayce', seasons: [{seasonId: '102', outcome: 'Runner-up'}]},
+            'ellie-diamond': { id: 'ellie-diamond', name: 'Ellie Diamond', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ellie', seasons: [{seasonId: '102', outcome: '4th Place'}]},
+            'awhora': { id: 'awhora', name: 'A\'Whora', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=A%27Whora', seasons: [{seasonId: '102', outcome: '5th Place'}]},
+            'tia-kofi': { id: 'tia-kofi', name: 'Tia Kofi', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Tia', seasons: [{seasonId: '102', outcome: '6th Place'}]},
+            'joe-black': { id: 'joe-black', name: 'Joe Black', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Joe', seasons: [{seasonId: '102', outcome: '7th Place'}]},
+            'veronica-green': { id: 'veronica-green', name: 'Veronica Green', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Veronica', seasons: [{seasonId: '102', outcome: '8th Place (WDR)'}]},
+            'sister-sister': { id: 'sister-sister', name: 'Sister Sister', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Sister', seasons: [{seasonId: '102', outcome: '9th Place'}]},
+            'asttina-mandella': { id: 'asttina-mandella', name: 'Asttina Mandella', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Asttina', seasons: [{seasonId: '102', outcome: '10th Place'}]},
+            'cherry-valentine': { id: 'cherry-valentine', name: 'Cherry Valentine', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Cherry', seasons: [{seasonId: '102', outcome: '11th Place'}]},
+            'ginny-lemon': { id: 'ginny-lemon', name: 'Ginny Lemon', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Ginny', seasons: [{seasonId: '102', outcome: '12th Place (WDR)'}]},
+            'rita-baga': { id: 'rita-baga', name: 'Rita Baga', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Rita', seasons: [{seasonId: '201', outcome: 'Runner-up'}]},
+            'scarlett-bobo': { id: 'scarlett-bobo', name: 'Scarlett BoBo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=BoBo', seasons: [{seasonId: '201', outcome: 'Runner-up'}]},
+            'jimbo': { id: 'jimbo', name: 'Jimbo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jimbo', seasons: [{seasonId: '201', outcome: '4th Place'}]},
+            'lemon': { id: 'lemon', name: 'Lemon', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Lemon', seasons: [{seasonId: '201', outcome: '5th Place'}]},
+            'kiara': { id: 'kiara', name: 'Kiara', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kiara', seasons: [{seasonId: '201', outcome: '8th Place'}]},
+            'anastarzia-anaquway': { id: 'anastarzia-anaquway', name: 'Anastarzia Anaquway', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Anastarzia', seasons: [{seasonId: '201', outcome: '10th Place'}]},
+            'kyne': { id: 'kyne', name: 'Kyne', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Kyne', seasons: [{seasonId: '201', outcome: '11th Place'}]},
+            'juice-boxx': { id: 'juice-boxx', name: 'Juice Boxx', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Juice', seasons: [{seasonId: '201', outcome: '12th Place'}]},
+            'art-simone': { id: 'art-simone', name: 'Art Simone', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Art', seasons: [{seasonId: '301', outcome: 'Runner-up'}]},
+            'karen-from-finance': { id: 'karen-from-finance', name: 'Karen from Finance', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Karen', seasons: [{seasonId: '301', outcome: 'Runner-up'}]},
+            'scarlet-adams': { id: 'scarlet-adams', name: 'Scarlet Adams', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Scarlet', seasons: [{seasonId: '301', outcome: 'Runner-up'}]},
+            'elektra-shock': { id: 'elektra-shock', name: 'Elektra Shock', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Elektra', seasons: [{seasonId: '301', outcome: '5th Place'}]},
+            'maxi-shield': { id: 'maxi-shield', name: 'Maxi Shield', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Maxi', seasons: [{seasonId: '301', outcome: '6th Place'}]},
+            'etcetera-etcetera': { id: 'etcetera-etcetera', name: 'Etcetera Etcetera', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Etcetera', seasons: [{seasonId: '301', outcome: '7th Place'}]},
+            'coco-jumbo': { id: 'coco-jumbo', name: 'Coco Jumbo', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Coco+J', seasons: [{seasonId: '301', outcome: '8th Place'}]},
+            'jojo-zaho': { id: 'jojo-zaho', name: 'Jojo Zaho', profilePic: 'https://placehold.co/400x400/4f46e5/f0abfc?text=Jojo', seasons: [{seasonId: '301', outcome: '10th Place'}]},
+          }
+        };
 
-const getPlacementClass = (p) => ({
-  'WIN': 'bg-sky-400 text-sky-900 border-sky-400', 
-  'Winner': 'bg-yellow-400 text-yellow-900 border-yellow-400 font-black',
-  'Runner-up': 'bg-slate-400 text-slate-900 border-slate-400', 
-  'HIGH': 'bg-green-400 text-green-900 border-green-400',
-  'SAFE': 'bg-slate-700/50 text-slate-300 border-slate-700', 
-  'LOW': 'bg-orange-400 text-orange-900 border-orange-400',
-  'BTM2': 'bg-rose-500 text-rose-900 border-rose-500', 
-  'BTM': 'bg-rose-500 text-rose-900 border-rose-500', 
-  'ELIM': 'bg-red-600 text-red-900 border-red-600',
-  'WDR': 'bg-purple-500 text-purple-900 border-purple-500', 
-  'IN': 'bg-teal-400 text-teal-900 border-teal-400', 
-  'TOP2': 'bg-sky-400 text-sky-900 border-sky-400',
-  'Miss C': 'bg-pink-400 text-pink-900 border-pink-400',
-}[p] || 'bg-slate-800 text-slate-500 border-slate-800');
+        // --- DATA FETCHING & STYLING ---
+        const fetchData = (collection, id) => {
+            if (!id) return db[collection] || [];
+            const data = db[collection];
+            if (Array.isArray(data)) {
+                return data.find(item => item.id === id);
+            }
+            return data?.[id];
+        };
 
+        const getPlacementClass = (p) => ({
+          'WIN': 'bg-sky-400 text-sky-900 border-sky-400', 
+          'Winner': 'bg-yellow-400 text-yellow-900 border-yellow-400 font-black',
+          'Runner-up': 'bg-slate-400 text-slate-900 border-slate-400', 
+          'HIGH': 'bg-green-400 text-green-900 border-green-400',
+          'SAFE': 'bg-slate-700/50 text-slate-300 border-slate-700', 
+          'LOW': 'bg-orange-400 text-orange-900 border-orange-400',
+          'BTM2': 'bg-rose-500 text-rose-900 border-rose-500', 
+          'BTM': 'bg-rose-500 text-rose-900 border-rose-500', 
+          'ELIM': 'bg-red-600 text-red-900 border-red-600',
+          'WDR': 'bg-purple-500 text-purple-900 border-purple-500', 
+          'IN': 'bg-teal-400 text-teal-900 border-teal-400', 
+          'TOP2': 'bg-sky-400 text-sky-900 border-sky-400',
+          'Miss C': 'bg-pink-400 text-pink-900 border-pink-400',
+        }[p] || 'bg-slate-800 text-slate-500 border-slate-800');
 
-// --- Reusable Components ---
-const Card = ({ icon, title, children }) => (
-    <div className="bg-slate-800/50 rounded-xl p-6 backdrop-blur-sm border border-slate-700/50">
-      <div className="flex items-center text-fuchsia-400 mb-3">
-        {icon}
-        <h3 className="text-xl font-bold text-white ml-3">{title}</h3>
-      </div>
-      {children}
-    </div>
-);
+        // --- Reusable Components ---
+        const Card = ({ icon, title, children }) => (
+            <div className="bg-slate-800/50 rounded-xl p-6 backdrop-blur-sm border border-slate-700/50">
+              <div className="flex items-center text-fuchsia-400 mb-3">
+                {icon}
+                <h3 className="text-xl font-bold text-white ml-3">{title}</h3>
+              </div>
+              {children}
+            </div>
+        );
 
-const TrackRecordTable = ({ records, setView }) => {
-    if (!records || records.length === 0) {
-        return <div className="text-center py-10 bg-slate-800/50 rounded-lg"><p className="text-slate-400">Track record coming soon!</p></div>;
-    }
-    return (
-        <div className="overflow-x-auto bg-slate-800/50 rounded-xl p-2">
-            <table className="w-full text-sm text-left border-separate border-spacing-1">
-                <thead>
-                    <tr>
-                        <th className="p-3 font-bold text-slate-300 sticky left-0 bg-slate-800/80 backdrop-blur-sm z-10">Contestant</th>
-                        {Array.from({ length: records[0].placements.length }, (_, i) => <th key={i} className="p-3 font-bold text-slate-400 text-center">E{i + 1}</th>)}
-                    </tr>
-                </thead>
-                <tbody>
-                    {records.map(r => {
-                      const queenData = Object.values(db.queens).find(q => q.name === r.queen);
-                      return (
-                        <tr key={r.queen}>
-                            <td 
-                              className="p-2 font-bold text-white sticky left-0 bg-slate-800/80 backdrop-blur-sm rounded-l-md cursor-pointer hover:text-fuchsia-400 z-10"
-                              onClick={() => queenData && setView('queen', queenData.id)}
-                            >
-                              {r.queen}
-                            </td>
-                            {r.placements.map((p, i) => <td key={i} className={`p-2 text-center font-bold text-xs border ${getPlacementClass(p)}`}>{p || ''}</td>)}
-                        </tr>
-                      )}
-                    )}
-                </tbody>
-            </table>
-        </div>
-    );
-};
+        const TrackRecordTable = ({ records, setView }) => {
+            if (!records || records.length === 0) {
+                return <div className="text-center py-10 bg-slate-800/50 rounded-lg"><p className="text-slate-400">Track record coming soon!</p></div>;
+            }
+            return (
+                <div className="overflow-x-auto bg-slate-800/50 rounded-xl p-2">
+                    <table className="w-full text-sm text-left border-separate" style={{borderSpacing: '4px'}}>
+                        <thead>
+                            <tr>
+                                <th className="p-3 font-bold text-slate-300 sticky left-0 bg-slate-800/80 backdrop-blur-sm z-10 rounded-md">Contestant</th>
+                                {Array.from({ length: records[0].placements.length }, (_, i) => <th key={i} className="p-3 font-bold text-slate-400 text-center">E{i + 1}</th>)}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {records.map(r => {
+                              const queenData = Object.values(db.queens).find(q => q.name === r.queen);
+                              return (
+                                <tr key={r.queen}>
+                                    <td 
+                                      className="p-2 font-bold text-white sticky left-0 bg-slate-800/80 backdrop-blur-sm rounded-l-md cursor-pointer hover:text-fuchsia-400 z-10"
+                                      onClick={() => queenData && setView('queen', queenData.id)}
+                                    >
+                                      {r.queen}
+                                    </td>
+                                    {r.placements.map((p, i) => <td key={i} className={`p-2 text-center font-bold text-xs border rounded-md ${getPlacementClass(p)}`}>{p || ''}</td>)}
+                                </tr>
+                              )}
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
 
-
-// --- PAGE COMPONENTS ---
-
-const HomePage = ({ setView }) => (
-  <div className="relative text-white min-h-[calc(100vh-64px)] -m-8 flex flex-col justify-center items-center text-center overflow-hidden">
-    <div className="absolute inset-0 bg-indigo-900/50 z-10" style={{backgroundImage: 'radial-gradient(circle at center, transparent, #110c2e)'}}></div>
-    <div className="absolute inset-0 z-0 opacity-20" style={{backgroundImage: 'url(https://www.transparenttextures.com/patterns/glitter.png), linear-gradient(to bottom, #1e1b4b, #312e81)', backgroundSize: '300px, cover'}}></div>
-    <div className="relative z-20 p-8">
-      <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase" style={{ WebkitTextStroke: '2px #f0abfc', textShadow: '0 0 15px rgba(240, 171, 252, 0.5)' }}>
-        The Drag Race Compendium
-      </h1>
-      <p className="mt-4 text-xl text-slate-300 max-w-3xl mx-auto">
-        The definitive digital archive for every queen, season, and lip-sync from the global Drag Race universe. The library is officially OPEN.
-      </p>
-      <div className="mt-12">
-        <button onClick={() => setView('franchise', 'all')} className="px-8 py-4 bg-fuchsia-500 text-white font-bold text-lg rounded-full uppercase tracking-widest shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-400 hover:scale-105 transform transition-all duration-300 flex items-center mx-auto">
-          <Globe className="w-6 h-6 mr-3" />
-          Explore All Franchises
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const AllFranchisesPage = ({ setView }) => {
-  const franchises = fetchData('franchises');
-  return (
-    <div>
-        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-8">Global Werk Room</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {franchises.map(franchise => (
-            <div key={franchise.id} onClick={() => setView('franchise', franchise.id)} className="group cursor-pointer bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 hover:border-fuchsia-500 hover:bg-slate-800 transition-all duration-300">
-              <img src={franchise.logo} alt={`${franchise.name} Logo`} className="w-full h-32 object-cover rounded-lg mb-4 opacity-80 group-hover:opacity-100" />
-              <h2 className="text-2xl font-bold text-white group-hover:text-fuchsia-400">{franchise.name}</h2>
-              <p className="text-slate-400">{franchise.region}</p>
-              <div className="text-xs text-slate-500 mt-3">
-                  <p>Host(s): {franchise.hosts}</p>
-                  <p>Premiere: {franchise.premiereDate}</p>
+        // --- PAGE COMPONENTS ---
+        const HomePage = ({ setView }) => (
+          <div className="relative text-white min-h-screen -m-8 flex flex-col justify-center items-center text-center overflow-hidden">
+            <div className="absolute inset-0 bg-indigo-900/50 z-10" style={{backgroundImage: 'radial-gradient(circle at center, transparent, #110c2e)'}}></div>
+            <div className="absolute inset-0 z-0 opacity-20" style={{backgroundImage: 'url(https://www.transparenttextures.com/patterns/glitter.png), linear-gradient(to bottom, #1e1b4b, #312e81)', backgroundSize: '300px, cover'}}></div>
+            <div className="relative z-20 p-8">
+              <h1 className="text-6xl md:text-8xl font-black tracking-tighter uppercase" style={{ WebkitTextStroke: '2px #f0abfc', textShadow: '0 0 15px rgba(240, 171, 252, 0.5)' }}>
+                The Drag Race Compendium
+              </h1>
+              <p className="mt-4 text-xl text-slate-300 max-w-3xl mx-auto">
+                The definitive digital archive for every queen, season, and lip-sync from the global Drag Race universe. The library is officially OPEN.
+              </p>
+              <div className="mt-12">
+                <button onClick={() => setView('franchise', 'all')} className="px-8 py-4 bg-fuchsia-500 text-white font-bold text-lg rounded-full uppercase tracking-widest shadow-lg shadow-fuchsia-500/30 hover:bg-fuchsia-400 hover:scale-105 transform transition-all duration-300 flex items-center mx-auto">
+                  <GlobeIcon />
+                  Explore All Franchises
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-    </div>
-  )
-}
+          </div>
+        );
 
-const FranchisePage = ({ id, setView }) => {
-  if (id === 'all') return <AllFranchisesPage setView={setView} />;
+        const AllFranchisesPage = ({ setView }) => {
+          const franchises = fetchData('franchises');
+          return (
+            <div>
+                <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-8">Global Werk Room</h1>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {franchises.map(franchise => (
+                    <div key={franchise.id} onClick={() => setView('franchise', franchise.id)} className="group cursor-pointer bg-slate-800/50 p-6 rounded-2xl border border-slate-700/50 hover:border-fuchsia-500 hover:bg-slate-800 transition-all duration-300">
+                      <img src={franchise.logo} alt={`${franchise.name} Logo`} className="w-full h-32 object-cover rounded-lg mb-4 opacity-80 group-hover:opacity-100" />
+                      <h2 className="text-2xl font-bold text-white group-hover:text-fuchsia-400">{franchise.name}</h2>
+                      <p className="text-slate-400">{franchise.region}</p>
+                      <div className="text-xs text-slate-500 mt-3">
+                          <p>Host(s): {franchise.hosts}</p>
+                          <p>Premiere: {franchise.premiereDate}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            </div>
+          )
+        }
 
-  const franchise = fetchData('franchises', id);
-  if (!franchise) return <p>Franchise not found.</p>;
+        const FranchisePage = ({ id, setView }) => {
+          if (id === 'all') return <AllFranchisesPage setView={setView} />;
 
-  return (
-    <div>
-      <div className="relative -m-8 mb-8 p-8 md:p-16 h-64 md:h-80 flex items-end rounded-b-3xl overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
-        <img src={franchise.logo.replace('500x281', '1200x400')} alt={`${franchise.name} Banner`} className="absolute inset-0 w-full h-full object-cover z-0" />
-        <div className="relative z-20">
-          <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter">{franchise.name}</h1>
-          <h2 className="text-2xl font-bold text-fuchsia-400">{franchise.region}</h2>
-        </div>
-      </div>
+          const franchise = fetchData('franchises', id);
+          if (!franchise) return <p>Franchise not found.</p>;
 
-      <div className="mt-8">
-        <h3 className="text-3xl font-bold text-white mb-6 flex items-center">
-          <Tv className="w-8 h-8 mr-3 text-fuchsia-400" />
-          Seasons
-        </h3>
-        {franchise.seasons.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {franchise.seasons.map(seasonId => {
-              const season = fetchData('seasons', seasonId.toString());
-              if (!season) return null;
-              return (
-                <div key={season.id} onClick={() => setView('season', season.id)} className="group cursor-pointer text-center relative overflow-hidden rounded-xl shadow-lg shadow-black/30">
-                  <img src={season.poster} alt={`Season ${season.seasonNumber}`} className="w-full h-auto transform group-hover:scale-110 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                  <div className="absolute bottom-0 left-0 p-4 w-full">
-                    <p className="font-black text-2xl text-white">
-                      {id.includes('as') ? `AS${season.seasonNumber.replace('All Stars ','')}` : `S${season.seasonNumber}`}
-                    </p>
-                    <p className="text-sm text-slate-300">{season.year}</p>
+          return (
+            <div>
+              <div className="relative -m-8 mb-8 p-8 md:p-16 h-64 md:h-80 flex items-end rounded-b-3xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent z-10"></div>
+                <img src={franchise.logo.replace('500x281', '1200x400')} alt={`${franchise.name} Banner`} className="absolute inset-0 w-full h-full object-cover z-0" />
+                <div className="relative z-20">
+                  <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter">{franchise.name}</h1>
+                  <h2 className="text-2xl font-bold text-fuchsia-400">{franchise.region}</h2>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <h3 className="text-3xl font-bold text-white mb-6 flex items-center">
+                  <TvIcon />
+                  Seasons
+                </h3>
+                {franchise.seasons.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    {franchise.seasons.map(seasonId => {
+                      const season = fetchData('seasons', seasonId.toString());
+                      if (!season) return null;
+                      return (
+                        <div key={season.id} onClick={() => setView('season', season.id)} className="group cursor-pointer text-center relative overflow-hidden rounded-xl shadow-lg shadow-black/30">
+                          <img src={season.poster} alt={`Season ${season.seasonNumber}`} className="w-full h-auto transform group-hover:scale-110 transition-transform duration-500" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                          <div className="absolute bottom-0 left-0 p-4 w-full">
+                            <p className="font-black text-2xl text-white">
+                              {id.includes('as') ? `AS${season.seasonNumber.replace('All Stars ','')}` : `S${season.seasonNumber}`}
+                            </p>
+                            <p className="text-sm text-slate-300">{season.year}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-center py-10 bg-slate-800/50 rounded-lg">
-            <p className="text-slate-400">Seasons coming soon, henny!</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+                ) : (
+                  <div className="text-center py-10 bg-slate-800/50 rounded-lg">
+                    <p className="text-slate-400">Seasons coming soon, henny!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        };
 
-const SeasonPage = ({ id, setView }) => {
-    const season = fetchData('seasons', id);
-    if (!season) return <p>Season not found.</p>;
-    const contestants = season.contestants.map(qid => fetchData('queens', qid)).filter(Boolean);
-    const franchise = fetchData('franchises', season.franchiseId);
+        const SeasonPage = ({ id, setView }) => {
+            const season = fetchData('seasons', id);
+            if (!season) return <p>Season not found.</p>;
+            const contestants = season.contestants.map(qid => fetchData('queens', qid)).filter(Boolean);
+            const franchise = fetchData('franchises', season.franchiseId);
 
-    return (
-    <div>
-        <div className="relative -m-8 mb-8">
-            <div className="h-96">
-                <img src={season.poster.replace('400x600', '1200x500')} alt={`Season ${season.seasonNumber}`} className="absolute inset-0 w-full h-full object-cover z-0 opacity-20" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-slate-900/50 z-10"></div>
-            </div>
-            <div className="absolute bottom-0 p-8 md:p-12 z-20">
-                <p className="text-2xl font-bold text-fuchsia-400 cursor-pointer" onClick={() => setView('franchise', franchise.id)}>{franchise.name}</p>
-                <h1 className="text-6xl font-black text-white uppercase tracking-tighter">
-                    {franchise.id.includes('as') ? `All Stars ${season.seasonNumber.replace('All Stars ','')}` : `Season ${season.seasonNumber}`}
-                </h1>
-            </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-6">
-                <div className="bg-slate-800/50 p-6 rounded-xl">
-                    <h3 className="text-xl font-bold text-white mb-4">The Crown</h3>
-                    <p className="text-sm font-semibold text-yellow-400">Winner</p>
-                    <p className="text-2xl font-bold text-white mb-2 cursor-pointer hover:underline" onClick={() => setView('queen', db.queens[season.winner.toLowerCase().replace(/ /g, '-')]?.id)}>{season.winner}</p>
-                    <p className="text-sm font-semibold text-slate-400">Runners-Up</p>
-                    <p className="text-lg font-medium text-slate-200">{season.runnersUp.join(', ')}</p>
+            return (
+            <div>
+                <div className="relative -m-8 mb-8">
+                    <div className="h-96">
+                        <img src={season.poster.replace('400x600', '1200x500')} alt={`Season ${season.seasonNumber}`} className="absolute inset-0 w-full h-full object-cover z-0 opacity-20" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-slate-900/50 z-10"></div>
+                    </div>
+                    <div className="absolute bottom-0 p-8 md:p-12 z-20">
+                        <p className="text-2xl font-bold text-fuchsia-400 cursor-pointer" onClick={() => setView('franchise', franchise.id)}>{franchise.name}</p>
+                        <h1 className="text-6xl font-black text-white uppercase tracking-tighter">
+                            {franchise.id.includes('as') ? `All Stars ${season.seasonNumber.replace('All Stars ','')}` : `Season ${season.seasonNumber}`}
+                        </h1>
+                    </div>
                 </div>
-                {season.missCongeniality && <div className="bg-slate-800/50 p-6 rounded-xl">
-                    <h3 className="text-xl font-bold text-white mb-4">Fan Favorite</h3>
-                    <p className="text-sm font-semibold text-fuchsia-400">Miss Congeniality</p>
-                    <p className="text-2xl font-bold text-white">{season.missCongeniality}</p>
-                </div>}
-            </div>
-            <div className="lg:col-span-2 bg-slate-800/50 p-6 rounded-xl">
-                <h3 className="text-xl font-bold text-white mb-4">Cast of Queens</h3>
-                <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-4">
-                    {contestants.map(q => (
-                        <div key={q.id} onClick={() => setView('queen', q.id)} className="group cursor-pointer text-center">
-                            <img src={q.profilePic} alt={q.name} className="rounded-full w-20 h-20 mx-auto border-4 border-slate-700 group-hover:border-fuchsia-500 transition-colors duration-300" />
-                            <p className="text-xs mt-2 font-semibold text-slate-300 group-hover:text-white">{q.name}</p>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-slate-800/50 p-6 rounded-xl">
+                            <h3 className="text-xl font-bold text-white mb-4">The Crown</h3>
+                            <p className="text-sm font-semibold text-yellow-400">Winner</p>
+                            <p className="text-2xl font-bold text-white mb-2 cursor-pointer hover:underline" onClick={() => setView('queen', db.queens[season.winner.toLowerCase().replace(/ /g, '-')]?.id)}>{season.winner}</p>
+                            <p className="text-sm font-semibold text-slate-400">Runners-Up</p>
+                            <p className="text-lg font-medium text-slate-200">{season.runnersUp.join(', ')}</p>
                         </div>
-                    ))}
+                        {season.missCongeniality && <div className="bg-slate-800/50 p-6 rounded-xl">
+                            <h3 className="text-xl font-bold text-white mb-4">Fan Favorite</h3>
+                            <p className="text-sm font-semibold text-fuchsia-400">Miss Congeniality</p>
+                            <p className="text-2xl font-bold text-white">{season.missCongeniality}</p>
+                        </div>}
+                    </div>
+                    <div className="lg:col-span-2 bg-slate-800/50 p-6 rounded-xl">
+                        <h3 className="text-xl font-bold text-white mb-4">Cast of Queens</h3>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-4">
+                            {contestants.map(q => (
+                                <div key={q.id} onClick={() => setView('queen', q.id)} className="group cursor-pointer text-center">
+                                    <img src={q.profilePic} alt={q.name} className="rounded-full w-20 h-20 mx-auto border-4 border-slate-700 group-hover:border-fuchsia-500 transition-colors duration-300" />
+                                    <p className="text-xs mt-2 font-semibold text-slate-300 group-hover:text-white">{q.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-12">
+                    <h2 className="text-3xl font-bold text-white mb-4 flex items-center"><BarChart2Icon />Track Record</h2>
+                    <TrackRecordTable records={season.trackRecord} setView={setView} />
                 </div>
             </div>
-        </div>
+            );
+        };
 
-        <div className="mt-12">
-            <h2 className="text-3xl font-bold text-white mb-4 flex items-center"><BarChart2 className="mr-3 text-fuchsia-400" />Track Record</h2>
-            <TrackRecordTable records={season.trackRecord} setView={setView} />
-        </div>
-    </div>
-    );
-};
+        const ComprehensiveTrackRecord = ({ queen, setView }) => {
+            if (!queen.seasons || queen.seasons.length === 0) return null;
 
-const ComprehensiveTrackRecord = ({ queen, setView }) => {
-    if (!queen.seasons || queen.seasons.length === 0) return null;
+            return (
+                <Card icon={<BarChart2Icon />} title="Comprehensive Performance">
+                    <div className="space-y-4">
+                        {queen.seasons.map(qs => {
+                            const seasonData = fetchData('seasons', qs.seasonId.toString());
+                            if (!seasonData?.trackRecord) return null;
+                            const queenRecord = seasonData.trackRecord.find(r => r.queen === queen.name);
+                            if (!queenRecord) return null;
+                            const franchise = fetchData('franchises', seasonData.franchiseId);
 
-    return (
-        <Card icon={<BarChart2 className="w-6 h-6"/>} title="Comprehensive Performance">
-            <div className="space-y-4">
-                {queen.seasons.map(qs => {
-                    const seasonData = fetchData('seasons', qs.seasonId.toString());
-                    if (!seasonData?.trackRecord) return null;
-                    const queenRecord = seasonData.trackRecord.find(r => r.queen === queen.name);
-                    if (!queenRecord) return null;
-                    const franchise = fetchData('franchises', seasonData.franchiseId);
-
-                    return (
-                        <div key={qs.seasonId}>
-                            <h4 className="font-bold text-lg text-fuchsia-300 cursor-pointer hover:underline" onClick={() => setView('season', seasonData.id)}>
-                                {franchise.name} {franchise.id.includes('as') ? 'All Stars ' : 'Season '} {seasonData.seasonNumber.replace('All Stars ','')}
-                            </h4>
-                            <div className="flex flex-wrap gap-1 mt-2">
-                                {queenRecord.placements.map((p, i) => (
-                                    <div key={i} className={`px-2 py-1 text-center font-bold text-xs border rounded ${getPlacementClass(p)}`}>
-                                        {p}
+                            return (
+                                <div key={qs.seasonId}>
+                                    <h4 className="font-bold text-lg text-fuchsia-300 cursor-pointer hover:underline" onClick={() => setView('season', seasonData.id)}>
+                                        {franchise.name} {franchise.id.includes('as') ? 'All Stars ' : 'Season '} {seasonData.seasonNumber.replace('All Stars ','')}
+                                    </h4>
+                                    <div className="flex flex-wrap gap-1 mt-2">
+                                        {queenRecord.placements.map((p, i) => (
+                                            <div key={i} className={`px-2 py-1 text-center font-bold text-xs border rounded-md ${getPlacementClass(p)}`}>
+                                                {p}
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        </Card>
-    );
-};
-
-const QueenPage = ({ id, setView }) => {
-    const queen = fetchData('queens', id);
-    if (!queen) return <p className="text-center text-xl">Condragulations, you broke the simulation. Queen not found.</p>;
-
-    return (
-    <div>
-        <div className="relative -m-8 mb-8 h-80 rounded-b-3xl overflow-hidden">
-            <img src={queen.banner || 'https://placehold.co/1200x400/1e1b4b/4c1d95?text=-'} alt={`${queen.name} Banner`} className="absolute inset-0 w-full h-full object-cover z-0" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-transparent z-10"></div>
-            <div className="absolute bottom-0 left-0 p-8 z-20 flex items-end">
-                <img src={queen.profilePic} alt={queen.name} className="w-48 h-48 rounded-full border-8 border-slate-900 shadow-2xl" />
-                <div className="ml-6 mb-4">
-                    <h1 className="text-6xl font-black text-white uppercase tracking-tighter" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}>{queen.name}</h1>
-                    {queen.realName && <p className="text-xl text-slate-300">{queen.realName}</p>}
-                </div>
-            </div>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-                {queen.bio && <Card icon={<Star className="w-6 h-6"/>} title="Biography">
-                    <p className="text-slate-300 leading-relaxed">{queen.bio}</p>
-                </Card>}
-                <ComprehensiveTrackRecord queen={queen} setView={setView} />
-                {queen.lipSyncs && queen.lipSyncs.length > 0 && <Card icon={<Mic className="w-6 h-6"/>} title="Lip-Sync Legacy">
-                    <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
-                        {queen.lipSyncs.map((ls, i) => (
-                        <li key={i} className={`p-3 rounded-md flex justify-between items-center ${ls.outcome === 'Won' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                            <div>
-                                <p className="font-bold text-white">"{ls.song}"</p>
-                                <p className="text-sm text-slate-400">vs. {ls.opponent} (S{ls.season})</p>
-                            </div>
-                            <span className={`px-3 py-1 text-xs font-bold rounded-full ${ls.outcome === 'Won' ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}`}>{ls.outcome}</span>
-                        </li>
-                        ))}
-                    </ul>
-                </Card>}
-            </div>
-            <div className="space-y-8">
-                <Card icon={<Shirt className="w-6 h-6"/>} title="Info">
-                    <div className="text-slate-300 space-y-2">
-                        {queen.hometown && <p><strong className="text-white font-semibold">Hometown:</strong> {queen.hometown}</p>}
-                        {queen.ageAtFilming && <p><strong className="text-white font-semibold">Age at Filming (First):</strong> {queen.ageAtFilming}</p>}
+                                </div>
+                            );
+                        })}
                     </div>
                 </Card>
-                {queen.career && Object.values(queen.career).some(v => Array.isArray(v) && v.length > 0) && <Card icon={<Clapperboard className="w-6 h-6"/>} title="Career Highlights">
-                    <div className="space-y-4">
-                      {queen.career?.music?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Music</h4><p className="text-slate-300 text-sm">{queen.career.music.join(', ')}</p></div>}
-                      {queen.career?.business?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Business</h4><p className="text-slate-300 text-sm">{queen.career.business.join(', ')}</p></div>}
-                      {queen.career?.media?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Media</h4><p className="text-slate-300 text-sm">{queen.career.media.join(', ')}</p></div>}
-                      {queen.career?.tours?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Tours</h4><p className="text-slate-300 text-sm">{queen.career.tours.join(', ')}</p></div>}
-                      {queen.career?.literature?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Literature</h4><p className="text-slate-300 text-sm">{queen.career.literature.join(', ')}</p></div>}
-                    </div>
-                </Card>}
-            </div>
-        </div>
-    </div>
-    );
-};
+            );
+        };
 
-// --- Main App Component ---
-export default function App() {
-    const [view, setView] = useState({ current: 'home', param: null });
-    const [path, setPath] = useState({});
-    const mainContentRef = useRef(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
+        const QueenPage = ({ id, setView }) => {
+            const queen = fetchData('queens', id);
+            if (!queen) return <p className="text-center text-xl">Condragulations, you broke the simulation. Queen not found.</p>;
 
-    useEffect(() => {
-        if (searchQuery.trim().length > 1) {
-            const allQueens = Object.values(fetchData('queens'));
-            const results = allQueens.filter(queen =>
-                queen.name && queen.name.toLowerCase().includes(searchQuery.toLowerCase())
-            ).slice(0, 10); // Limit results for performance
-            setSearchResults(results);
-        } else {
-            setSearchResults([]);
-        }
-    }, [searchQuery]);
-
-    useEffect(() => {
-        const newPath = {};
-        if (view.current === 'franchise') {
-            newPath.franchise = fetchData('franchises', view.param);
-        } else if (view.current === 'season') {
-            const season = fetchData('seasons', view.param);
-            if (season) {
-                newPath.season = season;
-                newPath.franchise = fetchData('franchises', season.franchiseId);
-            }
-        } else if (view.current === 'queen') {
-            const queen = fetchData('queens', view.param);
-            if(queen && queen.seasons && queen.seasons.length > 0) {
-              const primarySeason = fetchData('seasons', queen.seasons[0].seasonId.toString());
-              if (primarySeason) {
-                newPath.queen = queen;
-                newPath.season = primarySeason;
-                newPath.franchise = fetchData('franchises', primarySeason.franchiseId);
-              }
-            }
-        }
-        setPath(newPath);
-        mainContentRef.current?.scrollTo(0, 0);
-    }, [view]);
-
-    const handleSearchSelect = (queenId) => {
-        setView({ current: 'queen', param: queenId });
-        setSearchQuery('');
-        setSearchResults([]);
-        setIsSearchFocused(false);
-    };
-
-    const renderView = () => {
-        const setViewFunc = (c, p) => setView({ current: c, param: p });
-        switch (view.current) {
-            case 'franchise': return <FranchisePage id={view.param} setView={setViewFunc} />;
-            case 'season': return <SeasonPage id={view.param} setView={setViewFunc} />;
-            case 'queen': return <QueenPage id={view.param} setView={setViewFunc} />;
-            default: return <HomePage setView={setViewFunc} />;
-        }
-    };
-    
-    const Breadcrumbs = () => (
-        <nav className="mb-8 text-sm text-slate-400 flex items-center flex-wrap">
-            <a href="#" onClick={(e) => { e.preventDefault(); setView({current: 'home'}); }} className="hover:text-fuchsia-400 flex items-center">
-                <Home className="h-4 w-4 mr-1.5" /> Compendium
-            </a>
-            {path.franchise && (
-                <> <ChevronRight className="h-4 w-4 mx-1" />
-                    <a href="#" onClick={(e) => { e.preventDefault(); setView({current: 'franchise', param: path.franchise.id}); }} className="hover:text-fuchsia-400">{path.franchise.name}</a> </>
-            )}
-            {path.season && view.current !== 'franchise' && (
-                <> <ChevronRight className="h-4 w-4 mx-1" />
-                    <a href="#" onClick={(e) => { e.preventDefault(); setView({current: 'season', param: path.season.id}); }} className="hover:text-fuchsia-400">
-                        {path.franchise.id.includes('as') ? `All Stars ${path.season.seasonNumber.replace('All Stars ','')}` : `Season ${path.season.seasonNumber}`}
-                    </a> </>
-            )}
-            {path.queen && view.current === 'queen' && (
-                <> <ChevronRight className="h-4 w-4 mx-1" />
-                    <span className="font-semibold text-white">{path.queen.name}</span> </>
-            )}
-        </nav>
-    );
-
-    return (
-        <div className="bg-slate-900 min-h-screen font-sans text-slate-100 antialiased" style={{backgroundImage: 'linear-gradient(to bottom right, #1e1b4b, #110c2e 50%, #1e1b4b)'}}>
-            <header className="bg-slate-900/70 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-700/50">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
-                    <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => setView({current: 'home'})}>
-                        <Crown className="w-8 h-8 text-fuchsia-500" />
-                        <span className="text-xl font-black ml-2 tracking-tighter uppercase text-white">DRC</span>
-                    </div>
-                    <div className="relative w-full max-w-sm ml-4">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                        <input
-                            type="text"
-                            placeholder="Search for a queen..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onFocus={() => setIsSearchFocused(true)}
-                            onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-full py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition-all"
-                        />
-                        {isSearchFocused && searchResults.length > 0 && (
-                            <div className="absolute top-full mt-2 w-full bg-slate-800/90 backdrop-blur-lg rounded-lg shadow-lg border border-slate-700 z-50 max-h-96 overflow-y-auto">
-                                <ul>
-                                    {searchResults.map(queen => (
-                                        <li key={queen.id}
-                                            onMouseDown={() => handleSearchSelect(queen.id)}
-                                            className="p-3 flex items-center hover:bg-fuchsia-500/20 cursor-pointer border-b border-slate-700 last:border-b-0">
-                                            <img src={queen.profilePic} alt={queen.name} className="w-10 h-10 rounded-full mr-3" />
-                                            <span className="font-bold text-white">{queen.name}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
+            return (
+            <div>
+                <div className="relative -m-8 mb-8 h-80 rounded-b-3xl overflow-hidden">
+                    <img src={queen.banner || 'https://placehold.co/1200x400/1e1b4b/4c1d95?text=-'} alt={`${queen.name} Banner`} className="absolute inset-0 w-full h-full object-cover z-0" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/70 to-transparent z-10"></div>
+                    <div className="absolute bottom-0 left-0 p-8 z-20 flex items-end">
+                        <img src={queen.profilePic} alt={queen.name} className="w-48 h-48 rounded-full border-8 border-slate-900 shadow-2xl" />
+                        <div className="ml-6 mb-4">
+                            <h1 className="text-6xl font-black text-white uppercase tracking-tighter" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}>{queen.name}</h1>
+                            {queen.realName && <p className="text-xl text-slate-300">{queen.realName}</p>}
+                        </div>
                     </div>
                 </div>
-            </header>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 space-y-8">
+                        {queen.bio && <Card icon={<StarIcon />} title="Biography">
+                            <p className="text-slate-300 leading-relaxed">{queen.bio}</p>
+                        </Card>}
+                        <ComprehensiveTrackRecord queen={queen} setView={setView} />
+                        {queen.lipSyncs && queen.lipSyncs.length > 0 && <Card icon={<MicIcon />} title="Lip-Sync Legacy">
+                            <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                                {queen.lipSyncs.map((ls, i) => (
+                                <li key={i} className={`p-3 rounded-md flex justify-between items-center ${ls.outcome === 'Won' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                                    <div>
+                                        <p className="font-bold text-white">"{ls.song}"</p>
+                                        <p className="text-sm text-slate-400">vs. {ls.opponent} (S{ls.season})</p>
+                                    </div>
+                                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${ls.outcome === 'Won' ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}`}>{ls.outcome}</span>
+                                </li>
+                                ))}
+                            </ul>
+                        </Card>}
+                    </div>
+                    <div className="space-y-8">
+                        <Card icon={<ShirtIcon />} title="Info">
+                            <div className="text-slate-300 space-y-2">
+                                {queen.hometown && <p><strong className="text-white font-semibold">Hometown:</strong> {queen.hometown}</p>}
+                                {queen.ageAtFilming && <p><strong className="text-white font-semibold">Age at Filming (First):</strong> {queen.ageAtFilming}</p>}
+                            </div>
+                        </Card>
+                        {queen.career && Object.values(queen.career).some(v => Array.isArray(v) && v.length > 0) && <Card icon={<ClapperboardIcon />} title="Career Highlights">
+                            <div className="space-y-4">
+                              {queen.career?.music?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Music</h4><p className="text-slate-300 text-sm">{queen.career.music.join(', ')}</p></div>}
+                              {queen.career?.business?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Business</h4><p className="text-slate-300 text-sm">{queen.career.business.join(', ')}</p></div>}
+                              {queen.career?.media?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Media</h4><p className="text-slate-300 text-sm">{queen.career.media.join(', ')}</p></div>}
+                              {queen.career?.tours?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Tours</h4><p className="text-slate-300 text-sm">{queen.career.tours.join(', ')}</p></div>}
+                              {queen.career?.literature?.length > 0 && <div><h4 className="font-bold text-fuchsia-400">Literature</h4><p className="text-slate-300 text-sm">{queen.career.literature.join(', ')}</p></div>}
+                            </div>
+                        </Card>}
+                    </div>
+                </div>
+            </div>
+            );
+        };
 
-            <main ref={mainContentRef} className="container mx-auto p-4 sm:p-6 lg:p-8">
-                {view.current !== 'home' && <Breadcrumbs />}
-                {renderView()}
-            </main>
-        </div>
-    );
-}
+        // --- Main App Component ---
+        const App = () => {
+            const [view, setView] = useState({ current: 'home', param: null });
+            const [path, setPath] = useState({});
+            const mainContentRef = useRef(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [searchResults, setSearchResults] = useState([]);
+            const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+            useEffect(() => {
+                if (searchQuery.trim().length > 1) {
+                    const allQueens = Object.values(fetchData('queens'));
+                    const results = allQueens.filter(queen =>
+                        queen.name && queen.name.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).slice(0, 10); // Limit results for performance
+                    setSearchResults(results);
+                } else {
+                    setSearchResults([]);
+                }
+            }, [searchQuery]);
+
+            useEffect(() => {
+                const newPath = {};
+                if (view.current === 'franchise') {
+                    newPath.franchise = fetchData('franchises', view.param);
+                } else if (view.current === 'season') {
+                    const season = fetchData('seasons', view.param);
+                    if (season) {
+                        newPath.season = season;
+                        newPath.franchise = fetchData('franchises', season.franchiseId);
+                    }
+                } else if (view.current === 'queen') {
+                    const queen = fetchData('queens', view.param);
+                    if(queen && queen.seasons && queen.seasons.length > 0) {
+                      const primarySeason = fetchData('seasons', queen.seasons[0].seasonId.toString());
+                      if (primarySeason) {
+                        newPath.queen = queen;
+                        newPath.season = primarySeason;
+                        newPath.franchise = fetchData('franchises', primarySeason.franchiseId);
+                      }
+                    }
+                }
+                setPath(newPath);
+                mainContentRef.current?.scrollTo(0, 0);
+            }, [view]);
+
+            const handleSearchSelect = (queenId) => {
+                setView({ current: 'queen', param: queenId });
+                setSearchQuery('');
+                setSearchResults([]);
+                setIsSearchFocused(false);
+            };
+
+            const renderView = () => {
+                const setViewFunc = (c, p) => setView({ current: c, param: p });
+                switch (view.current) {
+                    case 'franchise': return <FranchisePage id={view.param} setView={setViewFunc} />;
+                    case 'season': return <SeasonPage id={view.param} setView={setViewFunc} />;
+                    case 'queen': return <QueenPage id={view.param} setView={setViewFunc} />;
+                    default: return <HomePage setView={setViewFunc} />;
+                }
+            };
+            
+            const Breadcrumbs = () => (
+                <nav className="mb-8 text-sm text-slate-400 flex items-center flex-wrap">
+                    <a href="#" onClick={(e) => { e.preventDefault(); setView({current: 'home'}); }} className="hover:text-fuchsia-400 flex items-center">
+                        <HomeIcon /> Compendium
+                    </a>
+                    {path.franchise && (
+                        <> <ChevronRightIcon />
+                            <a href="#" onClick={(e) => { e.preventDefault(); setView({current: 'franchise', param: path.franchise.id}); }} className="hover:text-fuchsia-400">{path.franchise.name}</a> </>
+                    )}
+                    {path.season && view.current !== 'franchise' && (
+                        <> <ChevronRightIcon />
+                            <a href="#" onClick={(e) => { e.preventDefault(); setView({current: 'season', param: path.season.id}); }} className="hover:text-fuchsia-400">
+                                {path.franchise.id.includes('as') ? `All Stars ${path.season.seasonNumber.replace('All Stars ','')}` : `Season ${path.season.seasonNumber}`}
+                            </a> </>
+                    )}
+                    {path.queen && view.current === 'queen' && (
+                        <> <ChevronRightIcon />
+                            <span className="font-semibold text-white">{path.queen.name}</span> </>
+                    )}
+                </nav>
+            );
+
+            return (
+                <div className="bg-slate-900 min-h-screen text-slate-100 antialiased" style={{backgroundImage: 'linear-gradient(to bottom right, #1e1b4b, #110c2e 50%, #1e1b4b)'}}>
+                    <header className="bg-slate-900/70 backdrop-blur-lg sticky top-0 z-50 border-b border-slate-700/50">
+                        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+                            <div className="flex items-center cursor-pointer flex-shrink-0" onClick={() => setView({current: 'home'})}>
+                                <CrownIcon className="w-8 h-8 text-fuchsia-500" />
+                                <span className="text-xl font-black ml-2 tracking-tighter uppercase text-white">DRC</span>
+                            </div>
+                            <div className="relative w-full max-w-sm ml-4">
+                                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                                  <SearchIcon />
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Search for a queen..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onFocus={() => setIsSearchFocused(true)}
+                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                                    className="w-full bg-slate-800 border border-slate-700 rounded-full py-2 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-500 transition-all"
+                                />
+                                {isSearchFocused && searchResults.length > 0 && (
+                                    <div className="absolute top-full mt-2 w-full bg-slate-800/90 backdrop-blur-lg rounded-lg shadow-lg border border-slate-700 z-50 max-h-96 overflow-y-auto">
+                                        <ul>
+                                            {searchResults.map(queen => (
+                                                <li key={queen.id}
+                                                    onMouseDown={() => handleSearchSelect(queen.id)}
+                                                    className="p-3 flex items-center hover:bg-fuchsia-500/20 cursor-pointer border-b border-slate-700 last:border-b-0">
+                                                    <img src={queen.profilePic} alt={queen.name} className="w-10 h-10 rounded-full mr-3" />
+                                                    <span className="font-bold text-white">{queen.name}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    <main ref={mainContentRef} className="container mx-auto p-4 sm:p-6 lg:p-8">
+                        {view.current !== 'home' && <Breadcrumbs />}
+                        {renderView()}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+    </script>
+</body>
+</html>
